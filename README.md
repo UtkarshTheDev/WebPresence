@@ -1,111 +1,100 @@
 # Web Presence
 
-A browser extension that displays your current browsing activity in Discord via Rich Presence.
+<div align="center">
+  <img src="client/chrome/icons/icon128.png" alt="Web Presence Logo" width="80">
+  <h3>Share your browsing activity on Discord</h3>
+</div>
 
-## Features
+Web Presence is a lightweight browser extension that displays your current web browsing activity in Discord through Rich Presence. Show your friends what websites you're exploring in real-time with an elegant, customizable interface.
 
-- Tracks currently active tab's metadata (title, URL, favicon)
-- Updates Discord Rich Presence in real-time
-- Works with both Chrome (Manifest V3) and Firefox (Manifest V2)
-- Elegant UI with toggle to enable/disable presence
-- Cross-platform compatibility (Windows, Mac, Linux)
+## ✨ Features
 
-## Screenshots
+- **Real-time Tracking**: Displays your active tab's information in Discord
+- **Cross-browser Support**: Works with Chrome (Manifest V3) and Firefox (Manifest V2)
+- **User Privacy**: Toggle presence on/off with a single click
+- **Elegant UI**: Clean, Discord-themed interface
+- **Cross-platform**: Compatible with Windows, macOS, and Linux
 
-(Add screenshots here)
+## 🖼️ Screenshots
 
-## Installation
+<div align="center">
+  <p><i>Add screenshots here</i></p>
+</div>
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) or [Bun](https://bun.sh/) installed
-- Discord desktop application installed and running
+- [Bun](https://bun.sh/) or [Node.js](https://nodejs.org/) (v16+)
+- Discord desktop application
 
-### Server Setup
+### Installation
 
-1. Clone this repository:
-
-   ```
-   git clone https://github.com/yourusername/webpresence.git
-   cd webpresence
-   ```
-
-2. Change to the server directory:
-
-   ```
-   cd server
-   ```
-
-3. Install dependencies:
-
-   ```
-   bun install
-   ```
-
-4. Start the server:
-   ```
-   bun start
-   ```
-
-### Chrome Extension Setup
-
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable "Developer mode" (toggle in the top-right corner)
-3. Click "Load unpacked" and select the `client/chrome` directory from this project
-4. The extension should now appear in your browser toolbar
-
-### Firefox Extension Setup
-
-1. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
-2. Click "Load Temporary Add-on..."
-3. Select any file within the `client/firefox` directory from this project
-4. The extension should now appear in your browser toolbar
-
-## Usage
-
-1. Start the local server (`bun start` in the server directory)
-2. Make sure Discord is running
-3. Click the Web Presence extension icon in your browser toolbar
-4. Toggle the switch to enable/disable Rich Presence
-5. Your current browsing activity will now appear in your Discord status
-
-### Checking Discord Connection
-
-If you're having trouble connecting to Discord, you can run the connection checker:
+#### 1. Server Setup
 
 ```bash
+# Clone the repository
+git clone https://github.com/utkarshthedev/webpresence.git
+cd webpresence
+
+# Install and start the server
 cd server
-bun run check-discord
+bun install
+bun start
 ```
 
-This will tell you if Discord is properly configured for Rich Presence.
+#### 2. Browser Extension Setup
 
-### Troubleshooting
+**For Chrome:**
 
-If you encounter any issues, please refer to the [Troubleshooting Guide](TROUBLESHOOTING.md) for detailed solutions to common problems.
+1. Go to `chrome://extensions/`
+2. Enable "Developer mode"
+3. Click "Load unpacked" and select the `client/chrome` directory
+4. The extension icon will appear in your toolbar
 
-## Development
+**For Firefox:**
 
-### Building the server for production
+1. Go to `about:debugging#/runtime/this-firefox`
+2. Click "Load Temporary Add-on..."
+3. Select any file from the `client/firefox` directory
+4. The extension icon will appear in your toolbar
 
-```
+## 💡 How to Use
+
+1. Ensure the server is running (`bun start` in the server directory)
+2. Verify Discord is open on your computer
+3. Click the Web Presence extension icon in your browser
+4. Toggle the switch to enable Rich Presence
+5. Your browsing activity will now appear in your Discord profile
+
+## 🔧 Troubleshooting
+
+If you encounter any issues with the extension or Discord connection, please refer to the [Troubleshooting Guide](TROUBLESHOOTING.md) for detailed solutions to common problems.
+
+## 🛠️ Development
+
+### Building for Production
+
+```bash
 bun build index.ts --target node --outfile dist/index.js
 ```
 
-### Modifying the Discord Client ID
+### Using Your Own Discord Application
 
-If you want to use your own Discord application:
+1. Create a new application at the [Discord Developer Portal](https://discord.com/developers/applications)
+2. Copy your Client ID
+3. Replace the `DISCORD_CLIENT_ID` in `server/index.ts`
+4. Upload custom assets for your Rich Presence display
 
-1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. Create a new application
-3. Copy the Client ID
-4. Replace the `DISCORD_CLIENT_ID` constant in `server/index.ts` with your ID
+## 📄 License
 
-## License
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-MIT
+## 👏 Acknowledgements
 
-## Acknowledgements
+- [discord-rpc](https://www.npmjs.com/package/discord-rpc) for Discord integration
+- [ws](https://www.npmjs.com/package/ws) for WebSocket communication
 
-- [discord-rpc](https://www.npmjs.com/package/discord-rpc) - Discord Rich Presence client library
-- [ws](https://www.npmjs.com/package/ws) - WebSocket implementation for Node.js
+## 👤 Author
+
+Made with ❤️ by [Utkarsh Tiwari](https://github.com/utkarshthedev)

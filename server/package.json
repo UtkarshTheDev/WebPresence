@@ -5,10 +5,7 @@
   "scripts": {
     "start": "node index.ts",
     "dev": "node --watch index.ts",
-    "build": "node build index.ts --target node --outfile dist/index.js",
-    "check-discord": "node discord-checker.js",
-    "test-discord": "node test-discord-connection.js",
-    "fix-discord": "node fix-discord.js"
+    "build": "node build index.ts --target node --outfile dist/index.js"
   },
   "devDependencies": {
     "@types/bun": "latest",
