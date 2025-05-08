@@ -1,17 +1,18 @@
 /* Main Styles */
 :root {
-  --primary-color: #7289da; /* Discord Blurple */
-  --primary-dark: #5b6eae;
-  --primary-light: #a4b0e3;
-  --success-color: #43b581; /* Discord Online */
-  --error-color: #f04747; /* Discord Error */
-  --background-color: #36393f; /* Discord Dark */
-  --secondary-bg: #2f3136; /* Discord Secondary */
+  --primary-color: #5865f2; /* New Discord Blurple */
+  --primary-dark: #4752c4;
+  --primary-light: #7983f5;
+  --success-color: #3ba55c; /* Discord Online */
+  --error-color: #ed4245; /* Discord Error */
+  --background-color: #313338; /* Discord Dark */
+  --secondary-bg: #2b2d31; /* Discord Secondary */
+  --card-bg: #1e1f22; /* Discord Darker */
   --text-color: #ffffff;
-  --text-muted: #dcddde;
-  --border-radius: 8px;
-  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --transition: all 0.3s ease;
+  --text-muted: #b5bac1;
+  --border-radius: 10px;
+  --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  --transition: all 0.2s ease;
 }
 
 * {
@@ -21,60 +22,95 @@
 }
 
 body {
-  font-family: "Montserrat", sans-serif;
+  font-family: "Inter", sans-serif;
   background-color: var(--background-color);
   color: var(--text-color);
-  width: 350px;
-  height: 450px;
-  overflow: hidden;
+  width: 360px;
+  height: 500px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .container {
   display: flex;
   flex-direction: column;
   padding: 16px;
+  gap: 12px;
   height: 100%;
+}
+
+/* Card Styles */
+.card {
+  background-color: var(--secondary-bg);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
 }
 
 /* Header Styles */
 .header {
   display: flex;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
+  padding: 8px 0;
 }
 
 .logo {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   margin-right: 12px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 h1 {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--primary-color);
+  letter-spacing: -0.5px;
+}
+
+h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary-light);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Status Indicators */
+.status-card {
+  background-color: var(--card-bg);
+}
+
 .status-container {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 16px;
-  background-color: var(--secondary-bg);
-  padding: 12px;
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
 }
 
 .status-item {
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+
+.status-icon {
+  color: var(--primary-color);
+  font-size: 16px;
 }
 
 .status-label {
   font-size: 14px;
-  margin-right: 8px;
-  color: var(--text-muted);
+  font-weight: 500;
+  color: var(--text-color);
 }
 
 .status-indicator {
@@ -83,34 +119,38 @@ h1 {
   border-radius: 50%;
   background-color: var(--error-color);
   transition: var(--transition);
+  position: relative;
 }
 
 .status-indicator.connected {
   background-color: var(--success-color);
 }
 
-/* Divider */
-.divider {
-  height: 1px;
-  background-color: rgba(255, 255, 255, 0.1);
-  margin: 16px 0;
+/* Toggle Switch */
+.toggle-card {
+  background-color: var(--card-bg);
 }
 
-/* Toggle Switch */
 .toggle-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  background-color: var(--secondary-bg);
-  padding: 16px;
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
+}
+
+.toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .toggle-label {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.toggle-description {
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .toggle {
@@ -148,6 +188,7 @@ h1 {
   background-color: white;
   transition: var(--transition);
   border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 input:checked + .slider {
@@ -162,52 +203,93 @@ input:checked + .slider:before {
   transform: translateX(26px);
 }
 
-/* Preview Section */
-.preview {
+/* Discord Preview Section */
+.preview-card {
+  background-color: var(--card-bg);
+}
+
+.discord-preview {
   background-color: var(--secondary-bg);
   border-radius: var(--border-radius);
-  padding: 16px;
-  margin-bottom: 16px;
-  flex: 1;
-  overflow: hidden;
-  box-shadow: var(--box-shadow);
-}
-
-.preview h2 {
-  font-size: 16px;
-  margin-bottom: 12px;
-  color: var(--primary-light);
-}
-
-.preview-content {
+  padding: 12px;
   display: flex;
-  flex-direction: column;
   gap: 12px;
+  align-items: flex-start;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.preview-item {
+.discord-avatar {
+  width: 40px;
+  height: 40px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.discord-logo {
+  color: white;
+  font-size: 20px;
+}
+
+.discord-content {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
-.preview-label {
+.discord-game {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+}
+
+.discord-details,
+.discord-state {
   font-size: 12px;
   color: var(--text-muted);
-  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
 }
 
-.preview-value {
-  font-size: 14px;
-  word-break: break-word;
-  max-height: 70px;
-  overflow-y: auto;
+.discord-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Help Section */
+.help-card {
+  background-color: var(--card-bg);
+}
+
+.help-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.help-list li {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-list li i {
+  color: var(--success-color);
 }
 
 /* Footer */
 .footer {
   text-align: center;
   margin-top: auto;
-  padding-top: 16px;
+  padding-top: 8px;
 }
 
 .footer p {
@@ -215,19 +297,42 @@ input:checked + .slider:before {
   color: var(--text-muted);
 }
 
+.footer i {
+  color: var(--error-color);
+}
+
 /* Animations */
 @keyframes pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(114, 137, 218, 0.7);
+    box-shadow: 0 0 0 0 rgba(88, 101, 242, 0.7);
   }
   70% {
-    box-shadow: 0 0 0 10px rgba(114, 137, 218, 0);
+    box-shadow: 0 0 0 10px rgba(88, 101, 242, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(114, 137, 218, 0);
+    box-shadow: 0 0 0 0 rgba(88, 101, 242, 0);
   }
 }
 
 .status-indicator.connected {
   animation: pulse 2s infinite;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--card-bg);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-dark);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
 }

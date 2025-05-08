@@ -6,8 +6,12 @@
     <title>Web Presence</title>
     <link rel="stylesheet" href="popup.css" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
   </head>
   <body>
@@ -17,43 +21,68 @@
         <h1>Web Presence</h1>
       </div>
 
-      <div class="status-container">
-        <div class="status-item">
-          <span class="status-label">Discord</span>
-          <span class="status-indicator" id="discord-status"></span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Server</span>
-          <span class="status-indicator" id="server-status"></span>
+      <div class="card status-card">
+        <div class="status-container">
+          <div class="status-item">
+            <i class="fab fa-discord status-icon"></i>
+            <span class="status-label">Discord</span>
+            <span class="status-indicator" id="discord-status"></span>
+          </div>
+          <div class="status-item">
+            <i class="fas fa-server status-icon"></i>
+            <span class="status-label">Server</span>
+            <span class="status-indicator" id="server-status"></span>
+          </div>
         </div>
       </div>
 
-      <div class="divider"></div>
-
-      <div class="toggle-container">
-        <label for="presence-toggle" class="toggle-label">Rich Presence</label>
-        <label class="toggle">
-          <input type="checkbox" id="presence-toggle" />
-          <span class="slider"></span>
-        </label>
+      <div class="card toggle-card">
+        <div class="toggle-container">
+          <div class="toggle-info">
+            <label for="presence-toggle" class="toggle-label"
+              >Rich Presence</label
+            >
+            <span class="toggle-description"
+              >Show your browsing activity on Discord</span
+            >
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="presence-toggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
       </div>
 
-      <div class="preview" id="preview">
-        <h2>Current Presence</h2>
-        <div class="preview-content">
-          <div class="preview-item">
-            <span class="preview-label">Title:</span>
-            <span class="preview-value" id="preview-title">Not available</span>
+      <div class="card preview-card" id="preview">
+        <h2><i class="fas fa-eye"></i> Live Preview</h2>
+        <div class="discord-preview">
+          <div class="discord-avatar">
+            <i class="fab fa-discord discord-logo"></i>
           </div>
-          <div class="preview-item">
-            <span class="preview-label">URL:</span>
-            <span class="preview-value" id="preview-url">Not available</span>
+          <div class="discord-content">
+            <div class="discord-game">Web Browsing</div>
+            <div class="discord-details" id="preview-title">Loading...</div>
+            <div class="discord-state" id="preview-url">Loading...</div>
+            <div class="discord-time">00:00 elapsed</div>
           </div>
         </div>
+      </div>
+
+      <div class="card help-card">
+        <h2><i class="fas fa-question-circle"></i> Quick Help</h2>
+        <ul class="help-list">
+          <li>
+            <i class="fas fa-check-circle"></i> Make sure Discord is running
+          </li>
+          <li>
+            <i class="fas fa-check-circle"></i> Server must be running locally
+          </li>
+          <li><i class="fas fa-check-circle"></i> Toggle to enable/disable</li>
+        </ul>
       </div>
 
       <div class="footer">
-        <p>Show your browsing activity on Discord</p>
+        <p>Made with <i class="fas fa-heart"></i> for Discord users</p>
       </div>
     </div>
     <script src="popup.js"></script>
