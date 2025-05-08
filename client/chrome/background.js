@@ -6,6 +6,8 @@ let enabled = true;
 let currentTabId = null;
 let reconnectAttempts = 0;
 let reconnectInterval = null;
+let heartbeatInterval = null;
+const HEARTBEAT_INTERVAL = 45000; // 45 seconds heartbeat
 
 // Initialize the extension
 async function initialize() {
@@ -43,6 +45,9 @@ function connectWebSocket() {
       reconnectInterval = null;
     }
 
+    // Start heartbeat
+    startHeartbeat();
+
     // Send current tab information if enabled
     if (enabled) {
       sendCurrentTabInfo();
@@ -68,6 +73,9 @@ function connectWebSocket() {
   websocket.onclose = () => {
     console.log("Disconnected from WebSocket server");
     connected = false;
+
+    // Stop heartbeat
+    stopHeartbeat();
 
     // Attempt to reconnect with exponential backoff
     if (!reconnectInterval) {
@@ -164,6 +172,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return true;
 });
+
+// Start heartbeat mechanism
+function startHeartbeat() {
+  // Clear any existing heartbeat
+  stopHeartbeat();
+
+  // Set up new heartbeat interval
+  heartbeatInterval = setInterval(() => {
+    if (websocket && websocket.readyState === WebSocket.OPEN) {
+      console.log("Sending heartbeat to server");
+      websocket.send(JSON.stringify({ type: "ping" }));
+    }
+  }, HEARTBEAT_INTERVAL);
+}
+
+// Stop heartbeat mechanism
+function stopHeartbeat() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+}
 
 // Initialize on startup
 initialize();

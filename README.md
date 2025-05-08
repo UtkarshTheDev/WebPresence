@@ -18,7 +18,7 @@ Web Presence is a lightweight browser extension that displays your current web b
 ## 🖼️ Screenshots
 
 <div align="center">
-  <p><i>Add screenshots here</i></p>
+  <p><i>Coming Soon</i></p>
 </div>
 
 ## 🚀 Quick Start

@@ -67,14 +67,17 @@ async function updatePreviewFromCurrentTab() {
 
       // Only show preview for http/https pages
       if (tab.url.startsWith("http")) {
-        previewTitleEl.textContent = tab.title;
+        // Format title with "Viewing - " prefix
+        previewTitleEl.textContent = `Viewing - ${
+          tab.title.length > 30 ? tab.title.substring(0, 27) + "..." : tab.title
+        }`;
 
-        // Extract domain
+        // Extract domain and add the credit
         const url = new URL(tab.url);
-        previewUrlEl.textContent = url.hostname;
+        previewUrlEl.textContent = `${url.hostname} - made by utkarsh tiwari`;
       } else {
-        previewTitleEl.textContent = "Not available (non-http page)";
-        previewUrlEl.textContent = "Not available";
+        previewTitleEl.textContent = "Viewing - Not available";
+        previewUrlEl.textContent = "Not available - made by utkarsh tiwari";
       }
     }
   } catch (error) {

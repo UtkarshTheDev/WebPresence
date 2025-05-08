@@ -20,6 +20,10 @@ const server = http.createServer(app);
 // Initialize WebSocket server
 const wss = new WebSocketServer({ server });
 
+// Client activity tracking
+const clientActivity = new Map<any, number>(); // Using any for WebSocket type compatibility
+const ACTIVITY_TIMEOUT = 45000; // 45 seconds timeout
+
 // Using the basic connection method that works perfectly
 let rpc: DiscordRPC.Client | null = null;
 let rpcConnected = false;
@@ -160,13 +164,53 @@ connectToDiscord();
 
 // No favicon caching needed - using Discord application assets directly
 
+// Function to check for inactive clients and clear their presence
+function checkInactiveClients() {
+  const now = Date.now();
+
+  // Check each client's last activity time
+  clientActivity.forEach((lastActivity, ws) => {
+    // If client hasn't sent a heartbeat in the timeout period
+    if (now - lastActivity > ACTIVITY_TIMEOUT) {
+      console.log("Client inactive for too long, clearing presence");
+
+      // Clear Discord presence if connected
+      if (rpcConnected && rpcReady && rpc) {
+        try {
+          rpc.clearActivity();
+          console.log("Cleared Discord presence due to client inactivity");
+        } catch (error: any) {
+          console.error("Error clearing activity:", error);
+        }
+      }
+
+      // Remove the client from tracking
+      clientActivity.delete(ws);
+
+      // If the WebSocket is still open, close it
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    }
+  });
+}
+
+// Set up periodic check for inactive clients
+setInterval(checkInactiveClients, 15000); // Check every 15 seconds
+
 // WebSocket connection handling
 wss.on("connection", (ws) => {
   console.log("Browser extension connected");
 
+  // Initialize client activity tracking
+  clientActivity.set(ws, Date.now());
+
   ws.on("message", async (message) => {
     try {
       const data = JSON.parse(message.toString());
+
+      // Update client activity timestamp for any message
+      clientActivity.set(ws, Date.now());
 
       switch (data.type) {
         case "presence": {
@@ -260,7 +304,9 @@ wss.on("connection", (ws) => {
         }
 
         case "ping": {
+          // Respond to heartbeat
           ws.send(JSON.stringify({ type: "pong" }));
+          console.log("Received heartbeat from client");
           break;
         }
       }
@@ -271,6 +317,19 @@ wss.on("connection", (ws) => {
 
   ws.on("close", () => {
     console.log("Browser extension disconnected");
+
+    // Remove client from activity tracking
+    clientActivity.delete(ws);
+
+    // Clear presence if this was the last client
+    if (clientActivity.size === 0 && rpcConnected && rpcReady && rpc) {
+      try {
+        rpc.clearActivity();
+        console.log("Cleared Discord presence as all clients disconnected");
+      } catch (error: any) {
+        console.error("Error clearing activity:", error);
+      }
+    }
   });
 
   // Send initial state
