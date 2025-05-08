@@ -11,7 +11,7 @@ import { fileURLToPath } from "url";
 // Constants
 const PORT = 3000;
 // Using a pre-registered application ID (similar to VSCode's approach)
-const DISCORD_CLIENT_ID = "1157438221865717891"; // This is a pre-registered ID for Web Presence
+const DISCORD_CLIENT_ID = "1370122815273046117"; // This is a pre-registered ID for Web Presence
 const CACHE_DIR = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "cache"
@@ -34,61 +34,184 @@ const server = http.createServer(app);
 // Initialize WebSocket server
 const wss = new WebSocketServer({ server });
 
-// Initialize Discord RPC with VSCode-like approach
-const rpc = new DiscordRPC.Client({
-  transport: "ipc",
-  // Using a more permissive connection approach
-  clientId: DISCORD_CLIENT_ID,
-  // Adding additional options for better compatibility
-  debug: false,
-  // Using a more reliable connection method
-  useRpcConnection: true,
-});
-
+// Using the basic connection method that works perfectly
+let rpc: DiscordRPC.Client | null = null;
 let rpcConnected = false;
 let rpcReady = false;
 let presenceEnabled = true;
+let connectionAttempts = 0;
+let reconnectTimeout: NodeJS.Timeout | null = null;
 
 // Cache management
 const faviconCache = new Map<string, { timestamp: number; path: string }>();
 
-// Connect to Discord with improved error handling
-async function connectToDiscord() {
+// Function to check if Discord is running
+// Using the exact same approach as the successful test
+async function isDiscordRunning(): Promise<boolean> {
   try {
-    // Using a more reliable connection method
-    await rpc.login({
-      clientId: DISCORD_CLIENT_ID,
-      // Adding scopes for better compatibility
-      scopes: ["rpc", "rpc.api", "rpc.voice.read"],
-      // Using a more permissive connection approach
-      clientSecret: undefined,
+    console.log("Testing Discord connection...");
+
+    // Create client with minimal configuration - EXACTLY as in the test
+    const tempRpc = new DiscordRPC.Client({ transport: "ipc" });
+
+    // Simple approach with timeout
+    const timeoutPromise = new Promise<boolean>((_, reject) => {
+      setTimeout(() => reject(new Error("Connection test timed out")), 5000);
     });
 
-    rpcConnected = true;
-    console.log("Connected to Discord RPC");
+    try {
+      // Use the exact same approach as the successful test
+      await tempRpc.login({ clientId: DISCORD_CLIENT_ID });
 
+      console.log("✅ Discord connection test successful!");
+
+      try {
+        tempRpc.destroy();
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+
+      return true;
+    } catch (error) {
+      console.log(`❌ Discord connection test failed: ${error.message}`);
+
+      try {
+        tempRpc.destroy();
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+
+      return false;
+    }
+  } catch (error) {
+    console.log("Error checking if Discord is running:", error);
+    return false;
+  }
+}
+
+// Connect to Discord using EXACTLY the same approach as the successful test
+async function connectToDiscord() {
+  // Clear any existing reconnect timeout
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
+
+  console.log("🔄 Using EXACTLY the same approach as the successful test");
+
+  try {
+    // Destroy existing client if there is one
+    if (rpc) {
+      try {
+        console.log("Cleaning up previous Discord RPC client...");
+        rpc.destroy();
+      } catch (e) {
+        // Ignore errors during cleanup
+      }
+    }
+
+    // EXACTLY the same client creation as in the successful test
+    console.log(
+      "Creating client with minimal configuration - EXACTLY as in the test"
+    );
+    rpc = new DiscordRPC.Client({ transport: "ipc" });
+
+    console.log("Attempting to connect to Discord...");
+
+    // Set up event handlers before login
     rpc.on("ready", () => {
       rpcReady = true;
-      console.log("Discord RPC ready");
+      connectionAttempts = 0;
+      console.log("✅ Discord RPC ready - Rich Presence can now be displayed");
+      if (rpc && rpc.user) {
+        console.log(
+          `✅ Connected as Discord user: ${rpc.user.username}#${rpc.user.discriminator}`
+        );
+      }
     });
 
-    // Add error handling for disconnection
+    rpc.on("connected", () => {
+      rpcConnected = true;
+      console.log("✅ Connected to Discord RPC service");
+    });
+
     rpc.on("disconnected", () => {
-      console.log("Disconnected from Discord RPC");
+      console.log("❌ Disconnected from Discord RPC");
       rpcConnected = false;
       rpcReady = false;
-      // Attempt to reconnect
-      setTimeout(connectToDiscord, 5000);
+
+      // Attempt to reconnect with increasing delay
+      connectionAttempts++;
+      const delay = Math.min(
+        30000,
+        Math.pow(2, Math.min(connectionAttempts, 5)) * 1000
+      );
+      console.log(
+        `Will attempt to reconnect in ${
+          delay / 1000
+        } seconds (attempt ${connectionAttempts})`
+      );
+      reconnectTimeout = setTimeout(connectToDiscord, delay);
     });
+
+    // EXACTLY the same login approach as in the successful test
+    console.log("Using EXACTLY the same login approach as the successful test");
+    console.log("Logging in with client ID:", DISCORD_CLIENT_ID);
+    await rpc.login({ clientId: DISCORD_CLIENT_ID });
   } catch (error) {
-    console.error("Failed to connect to Discord:", error);
+    console.error("❌ Failed to connect to Discord:", error);
+
+    // Provide more helpful error messages
+    if (error.message === "RPC_CONNECTION_TIMEOUT") {
+      console.log("\n❌ Possible issues:");
+      console.log("1. Discord is running but RPC is disabled");
+      console.log("2. Discord IPC connection is blocked by a firewall");
+      console.log("3. The connection approach might need adjustment");
+
+      console.log("\n📋 Troubleshooting steps:");
+      console.log("1. Check if 'Game Activity' is enabled in Discord settings");
+      console.log(
+        "   - Open Discord Settings > Activity Settings > Activity Status"
+      );
+      console.log(
+        "   - Make sure 'Display current activity as a status message' is ON"
+      );
+      console.log(
+        "2. Try restarting Discord completely (close from system tray)"
+      );
+      console.log("3. Make sure no firewall is blocking the connection");
+      console.log(
+        "\n💡 IMPORTANT: Run 'bun run test-discord' to verify which connection method works"
+      );
+      console.log(
+        "   The test shows that the basic connection method works perfectly"
+      );
+    }
+
     rpcConnected = false;
-    // Retry connection with exponential backoff
-    setTimeout(connectToDiscord, Math.min(30000, Math.pow(2, 3) * 1000));
+    rpcReady = false;
+
+    // Retry connection with increasing delay
+    connectionAttempts++;
+    const delay = Math.min(
+      30000,
+      Math.pow(2, Math.min(connectionAttempts, 5)) * 1000
+    );
+    console.log(
+      `⏱️ Will attempt to reconnect in ${
+        delay / 1000
+      } seconds (attempt ${connectionAttempts})`
+    );
+    reconnectTimeout = setTimeout(connectToDiscord, delay);
   }
 }
 
 // Try to connect to Discord on startup
+console.log("🚀 Initializing Discord RPC connection...");
+console.log("💡 Using EXACTLY the same approach as the successful test");
+console.log(
+  "💡 This approach was verified to work by running 'bun run test-discord'"
+);
 connectToDiscord();
 
 // Handle favicon caching and retrieval
@@ -196,17 +319,55 @@ wss.on("connection", (ws) => {
               domain = url;
             }
 
-            // Set Rich Presence
-            rpc.setActivity({
-              details:
-                title.length > 128 ? `${title.substring(0, 125)}...` : title,
-              state:
-                domain.length > 128 ? `${domain.substring(0, 125)}...` : domain,
-              startTimestamp: Date.now(),
-              largeImageKey,
-              largeImageText: domain,
-              instance: false,
-            });
+            // Set Rich Presence with enhanced format:
+            // - Main title: "Viewing - [page title]"
+            // - Description: URL + "Made by Utkarsh Tiwari"
+            // - Buttons: GitHub repo and Twitter profile
+            // - Small image: Utkarsh's avatar
+            if (rpc) {
+              try {
+                rpc.setActivity({
+                  // Main title: "Viewing - [page title]"
+                  details: `Viewing - ${
+                    title.length > 100 ? `${title.substring(0, 97)}...` : title
+                  }`,
+
+                  // Description: URL + Made by Utkarsh Tiwari
+                  state: `- Made by Utkarsh Tiwari`,
+
+                  startTimestamp: Date.now(),
+                  largeImageKey: "web",
+                  largeImageText: domain,
+
+                  // Add small image (avatar)
+                  smallImageKey: "me",
+                  smallImageText: "Utkarsh Tiwari",
+
+                  // Add buttons
+                  buttons: [
+                    {
+                      label: "GitHub Repository",
+                      url: "https://github.com/utkarshthedev/webpresence",
+                    },
+                    {
+                      label: "Follow on Twitter",
+                      url: "https://twitter.com/utkarshthedev",
+                    },
+                  ],
+
+                  instance: false,
+                });
+              } catch (error) {
+                console.error("Error setting activity:", error);
+                // If we get an error here, the connection might be broken
+                if (rpcConnected) {
+                  rpcConnected = false;
+                  rpcReady = false;
+                  // Try to reconnect
+                  connectToDiscord();
+                }
+              }
+            }
           }
           break;
         }
@@ -215,9 +376,18 @@ wss.on("connection", (ws) => {
           presenceEnabled = data.enabled;
           console.log(`Presence ${presenceEnabled ? "enabled" : "disabled"}`);
 
-          if (!presenceEnabled && rpcConnected) {
+          if (!presenceEnabled && rpcConnected && rpc) {
             // Clear presence when disabled
-            rpc.clearActivity();
+            try {
+              rpc.clearActivity();
+            } catch (error) {
+              console.error("Error clearing activity:", error);
+              // If we get an error here, the connection might be broken
+              rpcConnected = false;
+              rpcReady = false;
+              // Try to reconnect
+              connectToDiscord();
+            }
           }
           break;
         }
@@ -247,7 +417,7 @@ wss.on("connection", (ws) => {
 });
 
 // API endpoints
-app.get("/status", (req, res) => {
+app.get("/status", (_, res) => {
   res.json({
     running: true,
     discordConnected: rpcConnected && rpcReady,
@@ -270,8 +440,17 @@ app.post("/toggle", (req, res) => {
     );
   });
 
-  if (!presenceEnabled && rpcConnected) {
-    rpc.clearActivity();
+  if (!presenceEnabled && rpcConnected && rpc) {
+    try {
+      rpc.clearActivity();
+    } catch (error) {
+      console.error("Error clearing activity:", error);
+      // If we get an error here, the connection might be broken
+      rpcConnected = false;
+      rpcReady = false;
+      // Try to reconnect
+      connectToDiscord();
+    }
   }
 
   res.json({ enabled: presenceEnabled });
