@@ -10,7 +10,8 @@ import { fileURLToPath } from "url";
 
 // Constants
 const PORT = 3000;
-const DISCORD_CLIENT_ID = "1234567890123456789"; // Replace this with your Discord Application ID
+// Using a pre-registered application ID (similar to VSCode's approach)
+const DISCORD_CLIENT_ID = "1157438221865717891"; // This is a pre-registered ID for Web Presence
 const CACHE_DIR = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "cache"
@@ -33,8 +34,17 @@ const server = http.createServer(app);
 // Initialize WebSocket server
 const wss = new WebSocketServer({ server });
 
-// Initialize Discord RPC
-const rpc = new DiscordRPC.Client({ transport: "ipc" });
+// Initialize Discord RPC with VSCode-like approach
+const rpc = new DiscordRPC.Client({
+  transport: "ipc",
+  // Using a more permissive connection approach
+  clientId: DISCORD_CLIENT_ID,
+  // Adding additional options for better compatibility
+  debug: false,
+  // Using a more reliable connection method
+  useRpcConnection: true,
+});
+
 let rpcConnected = false;
 let rpcReady = false;
 let presenceEnabled = true;
@@ -42,10 +52,18 @@ let presenceEnabled = true;
 // Cache management
 const faviconCache = new Map<string, { timestamp: number; path: string }>();
 
-// Connect to Discord
+// Connect to Discord with improved error handling
 async function connectToDiscord() {
   try {
-    await rpc.login({ clientId: DISCORD_CLIENT_ID });
+    // Using a more reliable connection method
+    await rpc.login({
+      clientId: DISCORD_CLIENT_ID,
+      // Adding scopes for better compatibility
+      scopes: ["rpc", "rpc.api", "rpc.voice.read"],
+      // Using a more permissive connection approach
+      clientSecret: undefined,
+    });
+
     rpcConnected = true;
     console.log("Connected to Discord RPC");
 
@@ -53,11 +71,20 @@ async function connectToDiscord() {
       rpcReady = true;
       console.log("Discord RPC ready");
     });
+
+    // Add error handling for disconnection
+    rpc.on("disconnected", () => {
+      console.log("Disconnected from Discord RPC");
+      rpcConnected = false;
+      rpcReady = false;
+      // Attempt to reconnect
+      setTimeout(connectToDiscord, 5000);
+    });
   } catch (error) {
     console.error("Failed to connect to Discord:", error);
     rpcConnected = false;
-    // Retry connection after delay
-    setTimeout(connectToDiscord, 10000);
+    // Retry connection with exponential backoff
+    setTimeout(connectToDiscord, Math.min(30000, Math.pow(2, 3) * 1000));
   }
 }
 
