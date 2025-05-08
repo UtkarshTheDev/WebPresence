@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web Presence</title>
+    <link rel="stylesheet" href="popup.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img src="icons/icon48.png" alt="Web Presence Logo" class="logo" />
+        <h1>Web Presence</h1>
+      </div>
+
+      <div class="status-container">
+        <div class="status-item">
+          <span class="status-label">Discord</span>
+          <span class="status-indicator" id="discord-status"></span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">Server</span>
+          <span class="status-indicator" id="server-status"></span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="toggle-container">
+        <label for="presence-toggle" class="toggle-label">Rich Presence</label>
+        <label class="toggle">
+          <input type="checkbox" id="presence-toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="preview" id="preview">
+        <h2>Current Presence</h2>
+        <div class="preview-content">
+          <div class="preview-item">
+            <span class="preview-label">Title:</span>
+            <span class="preview-value" id="preview-title">Not available</span>
+          </div>
+          <div class="preview-item">
+            <span class="preview-label">URL:</span>
+            <span class="preview-value" id="preview-url">Not available</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Show your browsing activity on Discord</p>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

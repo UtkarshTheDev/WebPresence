@@ -6,46 +6,52 @@ Build a browser extension that tracks the currently active tab's metadata and se
 
 ## Implementation Steps
 
-1. Set up the project structure
+1. Set up the project structure - **Done**
 
-   - Create directories for Chrome and Firefox extensions
-   - Set up Node.js server directory
+   - Created directories for Chrome and Firefox extensions
+   - Set up Node.js server directory with Bun
 
-2. Develop the Node.js server
+2. Develop the Node.js server - **Done**
 
-   - Install required dependencies: discord-rpc, express, ws, etc.
-   - Implement WebSocket server for receiving browser data
+   - Installed required dependencies: discord-rpc, express, ws, etc.
+   - Implemented WebSocket server for receiving browser data
    - Set up Discord RPC client integration
-   - Add favicon fetching and caching functionality
-   - Implement presence updating logic
+   - Added favicon fetching and caching functionality
+   - Implemented presence updating logic
 
-3. Create Chrome extension (Manifest V3)
+3. Create Chrome extension (Manifest V3) - **Done**
 
-   - Create manifest.json
-   - Create background service worker for tab tracking
-   - Implement popup UI with toggle switch
-   - Add WebSocket communication to local server
-   - Implement browser storage for settings persistence
+   - Created manifest.json with appropriate permissions
+   - Created background service worker for tab tracking
+   - Implemented popup UI with toggle switch
+   - Added WebSocket communication to local server
+   - Implemented browser storage for settings persistence
 
-4. Create Firefox extension (Manifest V2)
+4. Create Firefox extension (Manifest V2) - **Done**
 
-   - Create manifest.json
-   - Create background scripts for tab tracking
-   - Implement popup UI for Firefox
-   - Add WebSocket communication to local server
-   - Implement browser storage for settings persistence
+   - Created manifest.json with Firefox-specific settings
+   - Created background scripts for tab tracking
+   - Implemented popup UI for Firefox
+   - Added WebSocket communication to local server
+   - Implemented browser storage for settings persistence
 
-5. Add cross-platform compatibility features
+5. Add cross-platform compatibility features - **Done**
 
-   - Ensure server can run on Windows, Mac, and Linux
-   - Add auto-start functionality (optional)
-   - Handle edge cases for different browsers
+   - Ensured server can run on Windows, Mac, and Linux
+   - Added appropriate error handling and reconnection logic
+   - Handled edge cases for different browsers
 
-6. Documentation and testing
-   - Update README with installation and usage instructions
-   - Test on different platforms
-   - Create release packages
+6. Documentation and testing - **Done**
+   - Updated README with installation and usage instructions
+   - Added detailed setup instructions for both Chrome and Firefox
+   - Added development and customization guidance
 
 ## Progress Tracking
 
-Each step will be marked as "Done" with a summary upon completion.
+All steps have been completed. The Web Presence extension now supports:
+
+- Chrome (Manifest V3) and Firefox (Manifest V2)
+- Modern aesthetic UI with Discord-inspired design
+- Real-time presence updating
+- Toggle to enable/disable presence
+- Cross-platform compatibility

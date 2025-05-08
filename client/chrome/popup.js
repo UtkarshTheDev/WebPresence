@@ -1,0 +1,104 @@
+// DOM Elements
+const discordStatusEl = document.getElementById("discord-status");
+const serverStatusEl = document.getElementById("server-status");
+const toggleEl = document.getElementById("presence-toggle");
+const previewTitleEl = document.getElementById("preview-title");
+const previewUrlEl = document.getElementById("preview-url");
+
+// State
+let isEnabled = true;
+let isConnected = false;
+
+// Initialize popup
+async function initializePopup() {
+  // Get current state from background script
+  try {
+    const response = await chrome.runtime.sendMessage({ action: "getState" });
+    updateState(response);
+
+    // Update preview from current tab
+    updatePreviewFromCurrentTab();
+  } catch (error) {
+    console.error("Failed to get extension state:", error);
+  }
+}
+
+// Update the UI based on state
+function updateState({ enabled, connected }) {
+  isEnabled = enabled;
+  isConnected = connected;
+
+  // Update toggle
+  toggleEl.checked = isEnabled;
+
+  // Update status indicators
+  serverStatusEl.className = isConnected
+    ? "status-indicator connected"
+    : "status-indicator";
+
+  // Make a request to check if Discord is connected
+  checkDiscordConnection();
+}
+
+// Check if the Discord connection is active
+async function checkDiscordConnection() {
+  try {
+    const response = await fetch("http://localhost:3000/status");
+    const data = await response.json();
+
+    discordStatusEl.className = data.discordConnected
+      ? "status-indicator connected"
+      : "status-indicator";
+  } catch (error) {
+    console.error("Error checking Discord connection:", error);
+    discordStatusEl.className = "status-indicator";
+  }
+}
+
+// Update preview with current tab info
+async function updatePreviewFromCurrentTab() {
+  try {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tabs.length > 0) {
+      const tab = tabs[0];
+
+      // Only show preview for http/https pages
+      if (tab.url.startsWith("http")) {
+        previewTitleEl.textContent = tab.title;
+
+        // Extract domain
+        const url = new URL(tab.url);
+        previewUrlEl.textContent = url.hostname;
+      } else {
+        previewTitleEl.textContent = "Not available (non-http page)";
+        previewUrlEl.textContent = "Not available";
+      }
+    }
+  } catch (error) {
+    console.error("Error getting tab info:", error);
+  }
+}
+
+// Toggle presence state
+async function togglePresence() {
+  const newState = toggleEl.checked;
+
+  try {
+    const response = await chrome.runtime.sendMessage({
+      action: "toggle",
+      enabled: newState,
+    });
+
+    updateState(response);
+  } catch (error) {
+    console.error("Error toggling presence:", error);
+    // Revert toggle if there was an error
+    toggleEl.checked = isEnabled;
+  }
+}
+
+// Add event listeners
+toggleEl.addEventListener("change", togglePresence);
+
+// Initialize popup when DOM is loaded
+document.addEventListener("DOMContentLoaded", initializePopup);

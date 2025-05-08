@@ -1,0 +1,233 @@
+/* Main Styles */
+:root {
+  --primary-color: #7289da; /* Discord Blurple */
+  --primary-dark: #5b6eae;
+  --primary-light: #a4b0e3;
+  --success-color: #43b581; /* Discord Online */
+  --error-color: #f04747; /* Discord Error */
+  --background-color: #36393f; /* Discord Dark */
+  --secondary-bg: #2f3136; /* Discord Secondary */
+  --text-color: #ffffff;
+  --text-muted: #dcddde;
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Montserrat", sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  width: 350px;
+  height: 450px;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  height: 100%;
+}
+
+/* Header Styles */
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  margin-right: 12px;
+}
+
+h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* Status Indicators */
+.status-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  background-color: var(--secondary-bg);
+  padding: 12px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+}
+
+.status-label {
+  font-size: 14px;
+  margin-right: 8px;
+  color: var(--text-muted);
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--error-color);
+  transition: var(--transition);
+}
+
+.status-indicator.connected {
+  background-color: var(--success-color);
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin: 16px 0;
+}
+
+/* Toggle Switch */
+.toggle-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  background-color: var(--secondary-bg);
+  padding: 16px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.toggle-label {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 26px;
+}
+
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #72767d; /* Discord Muted */
+  transition: var(--transition);
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: var(--transition);
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: var(--primary-color);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--primary-color);
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* Preview Section */
+.preview {
+  background-color: var(--secondary-bg);
+  border-radius: var(--border-radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  flex: 1;
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+}
+
+.preview h2 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: var(--primary-light);
+}
+
+.preview-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preview-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.preview-value {
+  font-size: 14px;
+  word-break: break-word;
+  max-height: 70px;
+  overflow-y: auto;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.footer p {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(114, 137, 218, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(114, 137, 218, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(114, 137, 218, 0);
+  }
+}
+
+.status-indicator.connected {
+  animation: pulse 2s infinite;
+}
