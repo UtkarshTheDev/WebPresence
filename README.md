@@ -69,6 +69,21 @@ A browser extension that displays your current browsing activity in Discord via 
 4. Toggle the switch to enable/disable Rich Presence
 5. Your current browsing activity will now appear in your Discord status
 
+### Checking Discord Connection
+
+If you're having trouble connecting to Discord, you can run the connection checker:
+
+```bash
+cd server
+bun run check-discord
+```
+
+This will tell you if Discord is properly configured for Rich Presence.
+
+### Troubleshooting
+
+If you encounter any issues, please refer to the [Troubleshooting Guide](TROUBLESHOOTING.md) for detailed solutions to common problems.
+
 ## Development
 
 ### Building the server for production

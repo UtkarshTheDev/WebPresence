@@ -3,25 +3,11 @@ import http from "http";
 import cors from "cors";
 import { WebSocketServer } from "ws";
 import * as DiscordRPC from "discord-rpc";
-import fetch from "node-fetch";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 
 // Constants
 const PORT = 3000;
 // Using a pre-registered application ID (similar to VSCode's approach)
 const DISCORD_CLIENT_ID = "1370122815273046117"; // This is a pre-registered ID for Web Presence
-const CACHE_DIR = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "cache"
-);
-const MAX_CACHE_SIZE = 50; // Maximum number of cached favicons
-
-// Create cache directory if it doesn't exist
-if (!fs.existsSync(CACHE_DIR)) {
-  fs.mkdirSync(CACHE_DIR, { recursive: true });
-}
 
 // Initialize Express app
 const app = express();
@@ -42,52 +28,10 @@ let presenceEnabled = true;
 let connectionAttempts = 0;
 let reconnectTimeout: NodeJS.Timeout | null = null;
 
-// Cache management
-const faviconCache = new Map<string, { timestamp: number; path: string }>();
+// No cache management needed
 
-// Function to check if Discord is running
-// Using the exact same approach as the successful test
-async function isDiscordRunning(): Promise<boolean> {
-  try {
-    console.log("Testing Discord connection...");
-
-    // Create client with minimal configuration - EXACTLY as in the test
-    const tempRpc = new DiscordRPC.Client({ transport: "ipc" });
-
-    // Simple approach with timeout
-    const timeoutPromise = new Promise<boolean>((_, reject) => {
-      setTimeout(() => reject(new Error("Connection test timed out")), 5000);
-    });
-
-    try {
-      // Use the exact same approach as the successful test
-      await tempRpc.login({ clientId: DISCORD_CLIENT_ID });
-
-      console.log("✅ Discord connection test successful!");
-
-      try {
-        tempRpc.destroy();
-      } catch (e) {
-        // Ignore cleanup errors
-      }
-
-      return true;
-    } catch (error) {
-      console.log(`❌ Discord connection test failed: ${error.message}`);
-
-      try {
-        tempRpc.destroy();
-      } catch (e) {
-        // Ignore cleanup errors
-      }
-
-      return false;
-    }
-  } catch (error) {
-    console.log("Error checking if Discord is running:", error);
-    return false;
-  }
-}
+// Function to check if Discord is running is not needed anymore
+// We directly connect to Discord using the basic connection method
 
 // Connect to Discord using EXACTLY the same approach as the successful test
 async function connectToDiscord() {
@@ -158,7 +102,7 @@ async function connectToDiscord() {
     console.log("Using EXACTLY the same login approach as the successful test");
     console.log("Logging in with client ID:", DISCORD_CLIENT_ID);
     await rpc.login({ clientId: DISCORD_CLIENT_ID });
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Failed to connect to Discord:", error);
 
     // Provide more helpful error messages
@@ -214,73 +158,7 @@ console.log(
 );
 connectToDiscord();
 
-// Handle favicon caching and retrieval
-async function getFaviconPath(faviconUrl: string): Promise<string | null> {
-  // Check if favicon is already cached
-  if (faviconCache.has(faviconUrl)) {
-    const cached = faviconCache.get(faviconUrl);
-    if (cached && fs.existsSync(cached.path)) {
-      // Update access timestamp
-      cached.timestamp = Date.now();
-      return cached.path;
-    }
-  }
-
-  try {
-    // Make a hash of the URL to use as filename
-    const urlHash = Buffer.from(faviconUrl)
-      .toString("base64")
-      .replace(/[\/\\:]/g, "_");
-    const filePath = path.join(CACHE_DIR, urlHash);
-
-    // Download favicon
-    const response = await fetch(faviconUrl);
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch favicon: ${response.status} ${response.statusText}`
-      );
-    }
-
-    // Save to disk
-    const buffer = await response.arrayBuffer();
-    fs.writeFileSync(filePath, Buffer.from(buffer));
-
-    // Add to cache
-    faviconCache.set(faviconUrl, {
-      timestamp: Date.now(),
-      path: filePath,
-    });
-
-    // Check cache size and prune if needed
-    if (faviconCache.size > MAX_CACHE_SIZE) {
-      pruneCache();
-    }
-
-    return filePath;
-  } catch (error) {
-    console.error("Error downloading favicon:", error);
-    return null;
-  }
-}
-
-// Prune old cache entries
-function pruneCache() {
-  const entries = [...faviconCache.entries()];
-  entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-
-  // Remove oldest entries to bring cache size back to limit
-  for (let i = 0; i < entries.length - MAX_CACHE_SIZE; i++) {
-    const [url, { path: filePath }] = entries[i];
-    try {
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-      faviconCache.delete(url);
-    } catch (error) {
-      console.error("Error removing cached favicon:", error);
-    }
-  }
-}
+// No favicon caching needed - using Discord application assets directly
 
 // WebSocket connection handling
 wss.on("connection", (ws) => {
@@ -296,21 +174,10 @@ wss.on("connection", (ws) => {
             return;
           }
 
-          const { title, url, faviconUrl } = data;
+          const { title, url } = data;
           console.log(`Tab updated: ${title} - ${url}`);
 
           if (rpcConnected && rpcReady) {
-            let largeImageKey: string | undefined;
-
-            // Get favicon for large image
-            if (faviconUrl) {
-              const faviconPath = await getFaviconPath(faviconUrl);
-              if (faviconPath) {
-                // Use local file path for the image
-                largeImageKey = faviconPath;
-              }
-            }
-
             // Extract domain from URL
             let domain = "";
             try {
@@ -320,10 +187,10 @@ wss.on("connection", (ws) => {
             }
 
             // Set Rich Presence with enhanced format:
-            // - Main title: "Viewing - [page title]"
-            // - Description: URL + "Made by Utkarsh Tiwari"
+            // - Title: "Viewing - [page title]"
+            // - Description: "Made by Utkarsh Tiwari"
             // - Buttons: GitHub repo and Twitter profile
-            // - Small image: Utkarsh's avatar
+            // - Using Discord application assets directly
             if (rpc) {
               try {
                 rpc.setActivity({
@@ -331,11 +198,11 @@ wss.on("connection", (ws) => {
                   details: `Viewing - ${
                     title.length > 100 ? `${title.substring(0, 97)}...` : title
                   }`,
-
-                  // Description: URL + Made by Utkarsh Tiwari
-                  state: `- Made by Utkarsh Tiwari`,
+                  state: `- made by Utkarsh Tiwari`,
 
                   startTimestamp: Date.now(),
+
+                  // Use Discord application assets directly
                   largeImageKey: "web",
                   largeImageText: domain,
 
@@ -357,7 +224,7 @@ wss.on("connection", (ws) => {
 
                   instance: false,
                 });
-              } catch (error) {
+              } catch (error: any) {
                 console.error("Error setting activity:", error);
                 // If we get an error here, the connection might be broken
                 if (rpcConnected) {
@@ -380,7 +247,7 @@ wss.on("connection", (ws) => {
             // Clear presence when disabled
             try {
               rpc.clearActivity();
-            } catch (error) {
+            } catch (error: any) {
               console.error("Error clearing activity:", error);
               // If we get an error here, the connection might be broken
               rpcConnected = false;
@@ -397,7 +264,7 @@ wss.on("connection", (ws) => {
           break;
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error processing message:", error);
     }
   });
@@ -443,7 +310,7 @@ app.post("/toggle", (req, res) => {
   if (!presenceEnabled && rpcConnected && rpc) {
     try {
       rpc.clearActivity();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error clearing activity:", error);
       // If we get an error here, the connection might be broken
       rpcConnected = false;
