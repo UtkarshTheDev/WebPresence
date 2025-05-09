@@ -9,11 +9,21 @@ let reconnectInterval = null;
 let heartbeatInterval = null;
 const HEARTBEAT_INTERVAL = 45000; // 45 seconds heartbeat
 
+// User preferences
+let userPreferences = {
+  prefixText: "Viewing",
+};
+
 // Initialize the extension
 function initialize() {
   // Load settings from storage
-  browser.storage.local.get(["enabled"]).then((data) => {
+  browser.storage.local.get(["enabled", "userPreferences"]).then((data) => {
     enabled = data.enabled !== undefined ? data.enabled : true;
+
+    // Load user preferences if available
+    if (data.userPreferences) {
+      userPreferences = data.userPreferences;
+    }
 
     // Connect to WebSocket server
     connectWebSocket();
@@ -64,6 +74,12 @@ function connectWebSocket() {
         if (message.enabled !== enabled) {
           enabled = message.enabled;
           browser.storage.local.set({ enabled });
+        }
+
+        // Update preferences if provided
+        if (message.preferences) {
+          userPreferences = message.preferences;
+          browser.storage.local.set({ userPreferences });
         }
       }
     } catch (error) {
@@ -162,6 +178,7 @@ function getAndSendTabInfo(tabId) {
             title: tab.title,
             url: tab.url,
             faviconUrl: tab.favIconUrl,
+            preferences: userPreferences, // Send user preferences with presence update
           })
         );
       }
@@ -174,10 +191,68 @@ function getAndSendTabInfo(tabId) {
 // Listen for messages from popup
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "getState") {
-    return Promise.resolve({ enabled, connected });
+    return Promise.resolve({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
   } else if (message.action === "toggle") {
     togglePresence(message.enabled);
-    return Promise.resolve({ enabled, connected });
+    return Promise.resolve({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
+  } else if (message.action === "updatePreferences") {
+    // Update preferences
+    userPreferences = message.preferences;
+    browser.storage.local.set({ userPreferences });
+
+    // Send to server if connected
+    if (connected && websocket && websocket.readyState === WebSocket.OPEN) {
+      websocket.send(
+        JSON.stringify({
+          type: "updatePreferences",
+          preferences: userPreferences,
+        })
+      );
+
+      // Update presence with new preferences
+      if (enabled) {
+        sendCurrentTabInfo();
+      }
+    }
+
+    return Promise.resolve({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
+  } else if (message.action === "resetPreferences") {
+    // Reset to default
+    userPreferences = { prefixText: "Viewing" };
+    browser.storage.local.set({ userPreferences });
+
+    // Send to server if connected
+    if (connected && websocket && websocket.readyState === WebSocket.OPEN) {
+      websocket.send(
+        JSON.stringify({
+          type: "updatePreferences",
+          preferences: userPreferences,
+        })
+      );
+
+      // Update presence with new preferences
+      if (enabled) {
+        sendCurrentTabInfo();
+      }
+    }
+
+    return Promise.resolve({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
   }
 });
 

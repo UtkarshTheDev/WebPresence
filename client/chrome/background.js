@@ -9,11 +9,21 @@ let reconnectInterval = null;
 let heartbeatInterval = null;
 const HEARTBEAT_INTERVAL = 45000; // 45 seconds heartbeat
 
+// User preferences
+let userPreferences = {
+  prefixText: "Viewing",
+};
+
 // Initialize the extension
 async function initialize() {
   // Load settings from storage
-  const data = await chrome.storage.local.get(["enabled"]);
+  const data = await chrome.storage.local.get(["enabled", "userPreferences"]);
   enabled = data.enabled !== undefined ? data.enabled : true;
+
+  // Load user preferences if available
+  if (data.userPreferences) {
+    userPreferences = data.userPreferences;
+  }
 
   // Connect to WebSocket server
   connectWebSocket();
@@ -63,6 +73,12 @@ function connectWebSocket() {
         if (message.enabled !== enabled) {
           enabled = message.enabled;
           chrome.storage.local.set({ enabled });
+        }
+
+        // Update preferences if provided
+        if (message.preferences) {
+          userPreferences = message.preferences;
+          chrome.storage.local.set({ userPreferences });
         }
       }
     } catch (error) {
@@ -154,6 +170,7 @@ async function sendCurrentTabInfo() {
           title: tab.title,
           url: tab.url,
           faviconUrl: tab.favIconUrl,
+          preferences: userPreferences, // Send user preferences with presence update
         })
       );
     }
@@ -163,12 +180,70 @@ async function sendCurrentTabInfo() {
 }
 
 // Listen for messages from popup
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.action === "getState") {
-    sendResponse({ enabled, connected });
+    sendResponse({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
   } else if (message.action === "toggle") {
     togglePresence(message.enabled);
-    sendResponse({ enabled, connected });
+    sendResponse({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
+  } else if (message.action === "updatePreferences") {
+    // Update preferences
+    userPreferences = message.preferences;
+    chrome.storage.local.set({ userPreferences });
+
+    // Send to server if connected
+    if (connected && websocket && websocket.readyState === WebSocket.OPEN) {
+      websocket.send(
+        JSON.stringify({
+          type: "updatePreferences",
+          preferences: userPreferences,
+        })
+      );
+
+      // Update presence with new preferences
+      if (enabled) {
+        sendCurrentTabInfo();
+      }
+    }
+
+    sendResponse({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
+  } else if (message.action === "resetPreferences") {
+    // Reset to default
+    userPreferences = { prefixText: "Viewing" };
+    chrome.storage.local.set({ userPreferences });
+
+    // Send to server if connected
+    if (connected && websocket && websocket.readyState === WebSocket.OPEN) {
+      websocket.send(
+        JSON.stringify({
+          type: "updatePreferences",
+          preferences: userPreferences,
+        })
+      );
+
+      // Update presence with new preferences
+      if (enabled) {
+        sendCurrentTabInfo();
+      }
+    }
+
+    sendResponse({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
   }
   return true;
 });
