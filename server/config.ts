@@ -8,14 +8,14 @@ const defaultConfig = {
     reconnectAttempts: 0,
     maxReconnectAttempts: 10,
   },
-  
+
   // Server configuration
   server: {
     port: 3000,
     activityTimeout: 45000, // 45 seconds timeout for client activity
     inactiveCheckInterval: 15000, // Check for inactive clients every 15 seconds
   },
-  
+
   // Presence configuration
   presence: {
     enabled: true,
@@ -40,10 +40,12 @@ const defaultConfig = {
 // Runtime configuration that can be modified
 const runtimeConfig = {
   ...defaultConfig,
-  
+
   // User preferences that can be customized
   userPreferences: {
     prefixText: defaultConfig.presence.defaultPrefix,
+    disabledSites: [] as string[], // Sites where presence should be disabled
+    alwaysEnabledSites: [] as string[], // Sites where presence should always be shown
   },
 };
 
@@ -51,31 +53,36 @@ const runtimeConfig = {
 export const config = {
   // Get the current configuration
   get: () => runtimeConfig,
-  
+
   // Get Discord configuration
   getDiscord: () => runtimeConfig.discord,
-  
+
   // Get server configuration
   getServer: () => runtimeConfig.server,
-  
+
   // Get presence configuration
   getPresence: () => runtimeConfig.presence,
-  
+
   // Get user preferences
   getUserPreferences: () => runtimeConfig.userPreferences,
-  
+
   // Update user preferences
-  updateUserPreferences: (preferences: Partial<typeof runtimeConfig.userPreferences>) => {
+  updateUserPreferences: (
+    preferences: Partial<typeof runtimeConfig.userPreferences>
+  ) => {
     runtimeConfig.userPreferences = {
       ...runtimeConfig.userPreferences,
       ...preferences,
     };
     return runtimeConfig.userPreferences;
   },
-  
+
   // Reset user preferences to defaults
   resetUserPreferences: () => {
-    runtimeConfig.userPreferences.prefixText = defaultConfig.presence.defaultPrefix;
+    runtimeConfig.userPreferences.prefixText =
+      defaultConfig.presence.defaultPrefix;
+    runtimeConfig.userPreferences.disabledSites = [];
+    runtimeConfig.userPreferences.alwaysEnabledSites = [];
     return runtimeConfig.userPreferences;
   },
 };

@@ -12,6 +12,8 @@ const HEARTBEAT_INTERVAL = 45000; // 45 seconds heartbeat
 // User preferences
 let userPreferences = {
   prefixText: "Viewing",
+  disabledSites: [], // Sites where presence should be disabled
+  alwaysEnabledSites: [], // Sites where presence should always be shown
 };
 
 // Initialize the extension
@@ -171,6 +173,35 @@ function getAndSendTabInfo(tabId) {
       // Skip sending for about:, moz-extension://, etc. urls
       if (!tab.url.startsWith("http")) return;
 
+      // Extract domain from URL for client-side checks
+      let domain = "";
+      try {
+        domain = new URL(tab.url).hostname;
+      } catch (e) {
+        domain = tab.url;
+      }
+
+      // Check if domain is in disabled sites list (client-side check)
+      const isDisabled = userPreferences.disabledSites.some((site) =>
+        domain.includes(site)
+      );
+
+      // Check if domain is in always enabled sites list (client-side check)
+      const isAlwaysEnabled = userPreferences.alwaysEnabledSites.some((site) =>
+        domain.includes(site)
+      );
+
+      // Skip if disabled and not always enabled (client-side optimization)
+      if (isDisabled && !isAlwaysEnabled) {
+        console.log(`Skipping presence for disabled site: ${domain}`);
+        return;
+      }
+
+      // Skip if presence is disabled and site is not always enabled (client-side optimization)
+      if (!enabled && !isAlwaysEnabled) {
+        return;
+      }
+
       if (tab && websocket && websocket.readyState === WebSocket.OPEN) {
         websocket.send(
           JSON.stringify({
@@ -230,7 +261,112 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     });
   } else if (message.action === "resetPreferences") {
     // Reset to default
-    userPreferences = { prefixText: "Viewing" };
+    userPreferences = {
+      prefixText: "Viewing",
+      disabledSites: [],
+      alwaysEnabledSites: [],
+    };
+    browser.storage.local.set({ userPreferences });
+
+    // Send to server if connected
+    if (connected && websocket && websocket.readyState === WebSocket.OPEN) {
+      websocket.send(
+        JSON.stringify({
+          type: "updatePreferences",
+          preferences: userPreferences,
+        })
+      );
+
+      // Update presence with new preferences
+      if (enabled) {
+        sendCurrentTabInfo();
+      }
+    }
+
+    return Promise.resolve({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
+  } else if (message.action === "addDisabledSite") {
+    // Add site to disabled list
+    const domain = message.domain;
+    if (domain && !userPreferences.disabledSites.includes(domain)) {
+      userPreferences.disabledSites.push(domain);
+      browser.storage.local.set({ userPreferences });
+
+      // Send to server if connected
+      if (connected && websocket && websocket.readyState === WebSocket.OPEN) {
+        websocket.send(
+          JSON.stringify({
+            type: "updatePreferences",
+            preferences: userPreferences,
+          })
+        );
+      }
+    }
+
+    return Promise.resolve({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
+  } else if (message.action === "removeDisabledSite") {
+    // Remove site from disabled list
+    const domain = message.domain;
+    userPreferences.disabledSites = userPreferences.disabledSites.filter(
+      (site) => site !== domain
+    );
+    browser.storage.local.set({ userPreferences });
+
+    // Send to server if connected
+    if (connected && websocket && websocket.readyState === WebSocket.OPEN) {
+      websocket.send(
+        JSON.stringify({
+          type: "updatePreferences",
+          preferences: userPreferences,
+        })
+      );
+
+      // Update presence with new preferences
+      if (enabled) {
+        sendCurrentTabInfo();
+      }
+    }
+
+    return Promise.resolve({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
+  } else if (message.action === "addAlwaysEnabledSite") {
+    // Add site to always enabled list
+    const domain = message.domain;
+    if (domain && !userPreferences.alwaysEnabledSites.includes(domain)) {
+      userPreferences.alwaysEnabledSites.push(domain);
+      browser.storage.local.set({ userPreferences });
+
+      // Send to server if connected
+      if (connected && websocket && websocket.readyState === WebSocket.OPEN) {
+        websocket.send(
+          JSON.stringify({
+            type: "updatePreferences",
+            preferences: userPreferences,
+          })
+        );
+      }
+    }
+
+    return Promise.resolve({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
+  } else if (message.action === "removeAlwaysEnabledSite") {
+    // Remove site from always enabled list
+    const domain = message.domain;
+    userPreferences.alwaysEnabledSites =
+      userPreferences.alwaysEnabledSites.filter((site) => site !== domain);
     browser.storage.local.set({ userPreferences });
 
     // Send to server if connected

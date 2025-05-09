@@ -36,12 +36,39 @@ export function initWebSocketServer(server: Server) {
 
         switch (data.type) {
           case "presence": {
-            if (!presenceEnabled) {
+            const { title, url } = data;
+
+            // Extract domain from URL
+            let domain = "";
+            try {
+              domain = new URL(url).hostname;
+            } catch (e) {
+              domain = url;
+            }
+
+            // Check if domain is in disabled sites list
+            const userPrefs = config.getUserPreferences();
+            const isDisabled = userPrefs.disabledSites.some((site) =>
+              domain.includes(site)
+            );
+
+            // Check if domain is in always enabled sites list
+            const isAlwaysEnabled = userPrefs.alwaysEnabledSites.some((site) =>
+              domain.includes(site)
+            );
+
+            // Skip if disabled and not always enabled
+            if (isDisabled && !isAlwaysEnabled) {
+              console.log(`Skipping presence for disabled site: ${domain}`);
               return;
             }
 
-            const { title, url } = data;
-            console.log(`Tab updated: ${title} - ${url}`);
+            // Skip if presence is disabled and site is not always enabled
+            if (!presenceEnabled && !isAlwaysEnabled) {
+              return;
+            }
+
+            console.log(`Tab updated: ${title} - ${domain}`);
 
             if (discord.isConnected()) {
               discord.setActivity(title, url);

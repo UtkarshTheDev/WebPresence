@@ -390,6 +390,149 @@ input:checked + .slider:before {
   background-color: var(--success-color) !important;
 }
 
+/* Site Lists Card */
+.site-lists-card {
+  background-color: var(--card-bg);
+  margin-bottom: 20px;
+}
+
+.site-list-section {
+  margin-bottom: 20px;
+}
+
+.site-list-section h3 {
+  font-size: 1rem;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-description {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.site-list {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: var(--border-radius);
+  padding: 10px;
+  max-height: 100px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.site-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 8px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.site-item:last-child {
+  margin-bottom: 0;
+}
+
+.site-domain {
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.remove-site {
+  background: none;
+  border: none;
+  color: var(--error-color);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 5px;
+  border-radius: 3px;
+  transition: var(--transition);
+}
+
+.remove-site:hover {
+  background-color: rgba(237, 66, 69, 0.1);
+}
+
+.empty-list-message {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 5px;
+}
+
+.site-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.site-input-group {
+  display: flex;
+  gap: 5px;
+}
+
+.site-input-group input {
+  flex: 1;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-color);
+  padding: 8px 10px;
+  border-radius: var(--border-radius);
+  font-size: 0.9rem;
+}
+
+.site-input-group input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.action-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.action-button:hover {
+  background-color: var(--primary-dark);
+}
+
+.action-button i {
+  font-size: 0.8rem;
+}
+
+.site-list-note {
+  background-color: rgba(88, 101, 242, 0.1);
+  border-left: 3px solid var(--primary-color);
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.site-list-note i {
+  color: var(--primary-color);
+  font-size: 1rem;
+  margin-top: 2px;
+}
+
 /* Help Section */
 .help-card {
   background-color: var(--card-bg);

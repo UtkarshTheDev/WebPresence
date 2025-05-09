@@ -75,6 +75,69 @@
         </div>
       </div>
 
+      <div class="card site-lists-card">
+        <h2><i class="fas fa-globe"></i> Site Preferences</h2>
+
+        <div class="site-list-section">
+          <h3><i class="fas fa-eye-slash"></i> Disabled Sites</h3>
+          <p class="section-description">Never show presence for these sites</p>
+
+          <div class="site-list" id="disabled-sites-list">
+            <!-- Sites will be added here dynamically -->
+            <div class="empty-list-message">No sites added</div>
+          </div>
+
+          <div class="site-actions">
+            <button id="add-current-to-disabled" class="action-button">
+              <i class="fas fa-plus"></i> Disable Current Site
+            </button>
+            <div class="site-input-group">
+              <input
+                type="text"
+                id="disabled-site-input"
+                placeholder="e.g., youtube.com"
+              />
+              <button id="add-disabled-site" class="action-button">
+                <i class="fas fa-plus"></i> Add
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="site-list-section">
+          <h3><i class="fas fa-star"></i> Always Enabled Sites</h3>
+          <p class="section-description">
+            Show presence even when globally disabled
+          </p>
+
+          <div class="site-list" id="always-enabled-sites-list">
+            <!-- Sites will be added here dynamically -->
+            <div class="empty-list-message">No sites added</div>
+          </div>
+
+          <div class="site-actions">
+            <button id="add-current-to-always-enabled" class="action-button">
+              <i class="fas fa-plus"></i> Always Show Current Site
+            </button>
+            <div class="site-input-group">
+              <input
+                type="text"
+                id="always-enabled-site-input"
+                placeholder="e.g., github.com"
+              />
+              <button id="add-always-enabled-site" class="action-button">
+                <i class="fas fa-plus"></i> Add
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="site-list-note">
+          <i class="fas fa-info-circle"></i> Note: Enter domain names only
+          (e.g., youtube.com), not full URLs
+        </div>
+      </div>
+
       <div class="card preview-card" id="preview">
         <h2><i class="fas fa-eye"></i> Live Preview</h2>
         <div class="discord-preview">
