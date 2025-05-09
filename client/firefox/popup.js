@@ -112,7 +112,7 @@ async function updatePreviewFromCurrentTab() {
         // Format title with customized prefix
         const prefix = userPreferences.prefixText || "Viewing";
         previewTitleEl.textContent = `${prefix} - ${
-          tab.title.length > 30 ? tab.title.substring(0, 27) + "..." : tab.title
+          tab.title.length > 25 ? tab.title.substring(0, 22) + "..." : tab.title
         }`;
 
         // Extract domain and add the credit (changed to "by utkarsh tiwari")

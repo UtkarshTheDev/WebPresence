@@ -142,7 +142,7 @@ function setActivity(title: string, url: string) {
     rpc.setActivity({
       // Main title with customized prefix: "[prefix] - [page title]"
       details: `${userPrefs.prefixText} - ${
-        title.length > 100 ? `${title.substring(0, 97)}...` : title
+        title.length > 40 ? `${title.substring(0, 37)}...` : title
       }`,
 
       // Credit text: "by utkarsh tiwari"
