@@ -71,6 +71,18 @@ export function initWebSocketServer(server: Server) {
             console.log(`Tab updated: ${title} - ${domain}`);
 
             if (discord.isConnected()) {
+              // If this is an always-enabled site and presence is globally disabled,
+              // reset the timestamp to start fresh
+              const resetTimerForAlwaysEnabled =
+                !presenceEnabled && isAlwaysEnabled;
+
+              if (resetTimerForAlwaysEnabled) {
+                console.log(
+                  "Resetting timer for always-enabled site with presence disabled"
+                );
+                discord.resetTimestamp();
+              }
+
               discord.setActivity(title, url);
             }
             break;
@@ -80,7 +92,14 @@ export function initWebSocketServer(server: Server) {
             presenceEnabled = data.enabled;
             console.log(`Presence ${presenceEnabled ? "enabled" : "disabled"}`);
 
-            // We don't clear presence here anymore because there might be always-enabled sites
+            // Clear presence when disabled
+            if (!presenceEnabled && discord.isConnected()) {
+              discord.clearActivity();
+              console.log(
+                "Cleared Discord presence due to presence being disabled"
+              );
+            }
+
             // The client will send a new presence update for the current tab
             // which will check if the site is always enabled
             break;
@@ -117,6 +136,15 @@ export function initWebSocketServer(server: Server) {
             // Respond to heartbeat
             ws.send(JSON.stringify({ type: "pong" }));
             console.log("Received heartbeat from client");
+            break;
+          }
+
+          case "clearPresence": {
+            // Clear presence when requested (e.g., when switching away from an always-enabled site)
+            if (discord.isConnected()) {
+              discord.clearActivity();
+              console.log("Cleared Discord presence as requested by client");
+            }
             break;
           }
         }

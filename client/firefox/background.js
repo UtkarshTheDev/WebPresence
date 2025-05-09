@@ -8,6 +8,7 @@ let reconnectAttempts = 0;
 let reconnectInterval = null;
 let heartbeatInterval = null;
 const HEARTBEAT_INTERVAL = 45000; // 45 seconds heartbeat
+let lastAlwaysEnabledSite = null; // Track the last always-enabled site
 
 // User preferences
 let userPreferences = {
@@ -128,6 +129,11 @@ function togglePresence(state) {
       })
     );
 
+    // Reset the last always-enabled site tracking when disabling
+    if (!enabled) {
+      lastAlwaysEnabledSite = null;
+    }
+
     // Always send current tab info, even when disabled
     // sendCurrentTabInfo will check if the site is always enabled
     sendCurrentTabInfo();
@@ -192,12 +198,42 @@ function getAndSendTabInfo(tabId) {
       // Skip if disabled and not always enabled (client-side optimization)
       if (isDisabled && !isAlwaysEnabled) {
         console.log(`Skipping presence for disabled site: ${domain}`);
+
+        // If we were previously showing an always-enabled site, clear it
+        if (
+          lastAlwaysEnabledSite &&
+          websocket &&
+          websocket.readyState === WebSocket.OPEN
+        ) {
+          websocket.send(JSON.stringify({ type: "clearPresence" }));
+          lastAlwaysEnabledSite = null;
+        }
+
         return;
       }
 
-      // Skip if presence is disabled and site is not always enabled (client-side optimization)
-      if (!enabled && !isAlwaysEnabled) {
-        return;
+      // Handle presence disabled case
+      if (!enabled) {
+        // If site is not always enabled, skip it
+        if (!isAlwaysEnabled) {
+          // If we were previously showing an always-enabled site, clear it
+          if (
+            lastAlwaysEnabledSite &&
+            websocket &&
+            websocket.readyState === WebSocket.OPEN
+          ) {
+            websocket.send(JSON.stringify({ type: "clearPresence" }));
+            lastAlwaysEnabledSite = null;
+          }
+
+          return;
+        }
+
+        // Site is always enabled, track it
+        lastAlwaysEnabledSite = domain;
+      } else {
+        // Presence is enabled, reset tracking
+        lastAlwaysEnabledSite = null;
       }
 
       if (tab && websocket && websocket.readyState === WebSocket.OPEN) {
