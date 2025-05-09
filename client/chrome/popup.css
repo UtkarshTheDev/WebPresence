@@ -533,6 +533,25 @@ input:checked + .slider:before {
   margin-top: 2px;
 }
 
+.warning-note {
+  background-color: rgba(237, 66, 69, 0.1);
+  border-left: 3px solid var(--error-color);
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.warning-note i {
+  color: var(--error-color);
+  font-size: 0.9rem;
+  margin-top: 2px;
+}
+
 /* Help Section */
 .help-card {
   background-color: var(--card-bg);
