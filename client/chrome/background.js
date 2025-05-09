@@ -126,28 +126,25 @@ function togglePresence(state) {
       })
     );
 
-    if (enabled) {
-      sendCurrentTabInfo();
-    }
+    // Always send current tab info, even when disabled
+    // sendCurrentTabInfo will check if the site is always enabled
+    sendCurrentTabInfo();
   }
 }
 
 // Handle active tab change
 function handleTabChange(activeInfo) {
   currentTabId = activeInfo.tabId;
-  if (enabled && connected) {
+  if (connected) {
+    // Always send tab info, sendCurrentTabInfo will check if the site is always enabled
     sendCurrentTabInfo();
   }
 }
 
 // Handle tab updates
 function handleTabUpdate(tabId, changeInfo, tab) {
-  if (
-    tabId === currentTabId &&
-    changeInfo.status === "complete" &&
-    enabled &&
-    connected
-  ) {
+  if (tabId === currentTabId && changeInfo.status === "complete" && connected) {
+    // Always send tab info, sendCurrentTabInfo will check if the site is always enabled
     sendCurrentTabInfo();
   }
 }
@@ -239,10 +236,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         })
       );
 
-      // Update presence with new preferences
-      if (enabled) {
-        sendCurrentTabInfo();
-      }
+      // Always update presence with new preferences
+      // sendCurrentTabInfo will check if the site is always enabled
+      sendCurrentTabInfo();
     }
 
     sendResponse({
@@ -268,10 +264,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         })
       );
 
-      // Update presence with new preferences
-      if (enabled) {
-        sendCurrentTabInfo();
-      }
+      // Always update presence with new preferences
+      // sendCurrentTabInfo will check if the site is always enabled
+      sendCurrentTabInfo();
     }
 
     sendResponse({
@@ -319,10 +314,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         })
       );
 
-      // Update presence with new preferences
-      if (enabled) {
-        sendCurrentTabInfo();
-      }
+      // Always update presence with new preferences
+      // sendCurrentTabInfo will check if the site is always enabled
+      sendCurrentTabInfo();
     }
 
     sendResponse({
@@ -369,10 +363,9 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         })
       );
 
-      // Update presence with new preferences
-      if (enabled) {
-        sendCurrentTabInfo();
-      }
+      // Always update presence with new preferences
+      // sendCurrentTabInfo will check if the site is always enabled
+      sendCurrentTabInfo();
     }
 
     sendResponse({

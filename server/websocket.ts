@@ -80,10 +80,9 @@ export function initWebSocketServer(server: Server) {
             presenceEnabled = data.enabled;
             console.log(`Presence ${presenceEnabled ? "enabled" : "disabled"}`);
 
-            if (!presenceEnabled && discord.isConnected()) {
-              // Clear presence when disabled
-              discord.clearActivity();
-            }
+            // We don't clear presence here anymore because there might be always-enabled sites
+            // The client will send a new presence update for the current tab
+            // which will check if the site is always enabled
             break;
           }
 
@@ -194,9 +193,9 @@ function broadcastState(wss: WebSocketServer) {
 export function togglePresence(enabled: boolean) {
   presenceEnabled = enabled !== undefined ? enabled : !presenceEnabled;
 
-  if (!presenceEnabled && discord.isConnected()) {
-    discord.clearActivity();
-  }
+  // We don't clear presence here anymore because there might be always-enabled sites
+  // The client will send a new presence update for the current tab
+  // which will check if the site is always enabled
 
   return presenceEnabled;
 }
