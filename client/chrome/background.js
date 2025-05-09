@@ -66,7 +66,7 @@ function connectWebSocket() {
         }
       }
     } catch (error) {
-      console.error("Error parsing WebSocket message:", error);
+      console.log("Unable to parse WebSocket message:", error);
     }
   };
 
@@ -91,7 +91,7 @@ function connectWebSocket() {
   };
 
   websocket.onerror = (error) => {
-    console.error("WebSocket error:", error);
+    console.warn("WebSocket connection issue:", error);
   };
 }
 
@@ -158,7 +158,7 @@ async function sendCurrentTabInfo() {
       );
     }
   } catch (error) {
-    console.error("Error getting tab info:", error);
+    console.log("Tab info not available:", error);
   }
 }
 

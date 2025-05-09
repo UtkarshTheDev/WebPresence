@@ -19,7 +19,7 @@ async function initializePopup() {
     // Update preview from current tab
     updatePreviewFromCurrentTab();
   } catch (error) {
-    console.error("Failed to get extension state:", error);
+    console.log("Extension state not available:", error);
   }
 }
 
@@ -50,7 +50,7 @@ async function checkDiscordConnection() {
       ? "status-indicator connected"
       : "status-indicator";
   } catch (error) {
-    console.error("Error checking Discord connection:", error);
+    console.warn("Unable to connect to server:", error);
     discordStatusEl.className = "status-indicator";
   }
 }
@@ -81,7 +81,7 @@ async function updatePreviewFromCurrentTab() {
       }
     }
   } catch (error) {
-    console.error("Error getting tab info:", error);
+    console.log("Tab info not available:", error);
   }
 }
 
@@ -97,7 +97,7 @@ async function togglePresence() {
 
     updateState(response);
   } catch (error) {
-    console.error("Error toggling presence:", error);
+    console.warn("Unable to toggle presence:", error);
     // Revert toggle if there was an error
     toggleEl.checked = isEnabled;
   }
