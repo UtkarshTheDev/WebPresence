@@ -14,6 +14,7 @@ let userPreferences = {
   prefixText: "Viewing",
   disabledSites: [], // Sites where presence should be disabled
   alwaysEnabledSites: [], // Sites where presence should always be shown
+  continuousTimer: true, // Keep timer running when switching tabs (enabled by default)
 };
 
 // Initialize the extension
@@ -252,6 +253,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       prefixText: "Viewing",
       disabledSites: [],
       alwaysEnabledSites: [],
+      continuousTimer: true,
     };
     chrome.storage.local.set({ userPreferences });
 
@@ -366,6 +368,26 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       // Always update presence with new preferences
       // sendCurrentTabInfo will check if the site is always enabled
       sendCurrentTabInfo();
+    }
+
+    sendResponse({
+      enabled,
+      connected,
+      preferences: userPreferences,
+    });
+  } else if (message.action === "toggleContinuousTimer") {
+    // Toggle continuous timer
+    userPreferences.continuousTimer = message.enabled;
+    chrome.storage.local.set({ userPreferences });
+
+    // Send to server if connected
+    if (connected && websocket && websocket.readyState === WebSocket.OPEN) {
+      websocket.send(
+        JSON.stringify({
+          type: "updatePreferences",
+          preferences: userPreferences,
+        })
+      );
     }
 
     sendResponse({

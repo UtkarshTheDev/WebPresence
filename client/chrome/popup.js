@@ -5,6 +5,9 @@ const toggleEl = document.getElementById("presence-toggle");
 const previewTitleEl = document.getElementById("preview-title");
 const previewUrlEl = document.getElementById("preview-url");
 const prefixTextEl = document.getElementById("prefix-text");
+const continuousTimerToggleEl = document.getElementById(
+  "continuous-timer-toggle"
+);
 const savePreferencesBtn = document.getElementById("save-preferences");
 const resetPreferencesBtn = document.getElementById("reset-preferences");
 
@@ -35,6 +38,7 @@ let userPreferences = {
   prefixText: "Viewing",
   disabledSites: [],
   alwaysEnabledSites: [],
+  continuousTimer: true,
 };
 
 // Initialize popup
@@ -62,6 +66,9 @@ function updateState({ enabled, connected, preferences }) {
 
     // Update form fields with current preferences
     prefixTextEl.value = userPreferences.prefixText || "Viewing";
+
+    // Update continuous timer toggle
+    continuousTimerToggleEl.checked = userPreferences.continuousTimer !== false;
 
     // Update site lists
     updateSiteLists();
@@ -149,6 +156,7 @@ async function savePreferences() {
   try {
     // Update local preferences
     userPreferences.prefixText = prefixTextEl.value || "Viewing";
+    userPreferences.continuousTimer = continuousTimerToggleEl.checked;
 
     // Send to background script
     const response = await chrome.runtime.sendMessage({
@@ -368,8 +376,29 @@ function cleanDomain(input) {
   }
 }
 
+// Toggle continuous timer
+async function toggleContinuousTimer() {
+  try {
+    const newState = continuousTimerToggleEl.checked;
+
+    // Send to background script
+    const response = await chrome.runtime.sendMessage({
+      action: "toggleContinuousTimer",
+      enabled: newState,
+    });
+
+    // Update UI with response
+    updateState(response);
+  } catch (error) {
+    console.warn("Unable to toggle continuous timer:", error);
+    // Revert toggle if there was an error
+    continuousTimerToggleEl.checked = userPreferences.continuousTimer;
+  }
+}
+
 // Add event listeners
 toggleEl.addEventListener("change", togglePresence);
+continuousTimerToggleEl.addEventListener("change", toggleContinuousTimer);
 savePreferencesBtn.addEventListener("click", savePreferences);
 resetPreferencesBtn.addEventListener("click", resetPreferences);
 

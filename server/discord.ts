@@ -7,6 +7,9 @@ let rpcConnected = false;
 let rpcReady = false;
 let reconnectTimeout: NodeJS.Timeout | null = null;
 
+// Store the initial timestamp for continuous timer
+let initialTimestamp: number | null = null;
+
 /**
  * Connect to Discord RPC
  */
@@ -138,6 +141,13 @@ function setActivity(title: string, url: string) {
     const presenceConfig = config.getPresence();
     const userPrefs = config.getUserPreferences();
 
+    // Handle continuous timer
+    const now = Date.now();
+    if (initialTimestamp === null || !userPrefs.continuousTimer) {
+      // Initialize timestamp if it's not set or continuous timer is disabled
+      initialTimestamp = now;
+    }
+
     // Set Rich Presence with customized format
     rpc.setActivity({
       // Main title with customized prefix: "[prefix] - [page title]"
@@ -148,7 +158,8 @@ function setActivity(title: string, url: string) {
       // Credit text: "by utkarsh tiwari"
       state: `- ${presenceConfig.creditText}`,
 
-      startTimestamp: Date.now(),
+      // Use continuous timer if enabled, otherwise use current time
+      startTimestamp: initialTimestamp,
 
       // Use Discord application assets
       largeImageKey: presenceConfig.largeImageKey,
@@ -191,6 +202,8 @@ function clearActivity() {
 
   try {
     rpc.clearActivity();
+    // Reset the timestamp when clearing activity
+    initialTimestamp = null;
     return true;
   } catch (error: any) {
     console.error("Error clearing activity:", error);
@@ -212,10 +225,19 @@ function isConnected() {
   return rpcConnected && rpcReady;
 }
 
+/**
+ * Reset the activity timestamp
+ */
+function resetTimestamp() {
+  initialTimestamp = null;
+  return true;
+}
+
 // Export Discord RPC functions
 export const discord = {
   connect: connectToDiscord,
   setActivity,
   clearActivity,
   isConnected,
+  resetTimestamp,
 };

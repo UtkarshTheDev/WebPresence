@@ -46,6 +46,7 @@ const runtimeConfig = {
     prefixText: defaultConfig.presence.defaultPrefix,
     disabledSites: [] as string[], // Sites where presence should be disabled
     alwaysEnabledSites: [] as string[], // Sites where presence should always be shown
+    continuousTimer: true, // Keep timer running when switching tabs (enabled by default)
   },
 };
 
@@ -83,6 +84,7 @@ export const config = {
       defaultConfig.presence.defaultPrefix;
     runtimeConfig.userPreferences.disabledSites = [];
     runtimeConfig.userPreferences.alwaysEnabledSites = [];
+    runtimeConfig.userPreferences.continuousTimer = true;
     return runtimeConfig.userPreferences;
   },
 };

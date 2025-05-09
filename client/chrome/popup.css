@@ -166,7 +166,8 @@ h2 {
   height: 0;
 }
 
-.slider {
+.slider,
+.toggle-slider {
   position: absolute;
   cursor: pointer;
   top: 0;
@@ -178,7 +179,8 @@ h2 {
   border-radius: 34px;
 }
 
-.slider:before {
+.slider:before,
+.toggle-slider:before {
   position: absolute;
   content: "";
   height: 18px;
@@ -191,15 +193,18 @@ h2 {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-input:checked + .slider {
+input:checked + .slider,
+input:checked + .toggle-slider {
   background-color: var(--primary-color);
 }
 
-input:focus + .slider {
+input:focus + .slider,
+input:focus + .toggle-slider {
   box-shadow: 0 0 1px var(--primary-color);
 }
 
-input:checked + .slider:before {
+input:checked + .slider:before,
+input:checked + .toggle-slider:before {
   transform: translateX(26px);
 }
 
@@ -327,6 +332,29 @@ input:checked + .slider:before {
   gap: 6px;
 }
 
+.form-group.toggle-group {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.toggle-text label {
+  font-weight: 600;
+}
+
+.toggle-wrapper {
+  display: flex;
+  align-items: center;
+}
+
 .form-group label {
   font-size: 14px;
   font-weight: 500;
@@ -353,6 +381,13 @@ input:checked + .slider:before {
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 2px;
+}
+
+.toggle-text .form-hint {
+  display: block;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 0.8rem;
 }
 
 .save-button,

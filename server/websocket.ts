@@ -89,10 +89,23 @@ export function initWebSocketServer(server: Server) {
           case "updatePreferences": {
             // Handle preference updates
             if (data.preferences) {
+              // Check if continuousTimer preference is being changed
+              const oldPrefs = config.getUserPreferences();
+              const continuousTimerChanged =
+                "continuousTimer" in data.preferences &&
+                oldPrefs.continuousTimer !== data.preferences.continuousTimer;
+
+              // Update preferences
               const updatedPrefs = config.updateUserPreferences(
                 data.preferences
               );
               console.log("Updated user preferences:", updatedPrefs);
+
+              // If continuousTimer was disabled, reset the timestamp
+              if (continuousTimerChanged && !updatedPrefs.continuousTimer) {
+                console.log("Continuous timer disabled, resetting timestamp");
+                discord.resetTimestamp();
+              }
 
               // Broadcast updated preferences to all clients
               broadcastState(wss);
