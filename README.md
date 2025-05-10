@@ -10,6 +10,7 @@ Web Presence is a lightweight browser extension that displays your current web b
 ## ✨ Features
 
 - **Real-time Tracking**: Displays your active tab's information in Discord
+- **Custom Site Icons**: Shows site-specific icons for 100+ popular websites
 - **Cross-browser Support**: Works with Chrome (Manifest V3) and Firefox (Manifest V2)
 - **User Privacy**: Toggle presence on/off with a single click
 - **Elegant UI**: Clean, Discord-themed interface
@@ -83,8 +84,22 @@ bun build index.ts --target node --outfile dist/index.js
 
 1. Create a new application at the [Discord Developer Portal](https://discord.com/developers/applications)
 2. Copy your Client ID
-3. Replace the `DISCORD_CLIENT_ID` in `server/index.ts`
+3. Replace the `clientId` in `server/config.ts`
 4. Upload custom assets for your Rich Presence display
+
+### Custom Site Icons
+
+Web Presence now supports custom icons for popular websites. When you visit a supported site, the Discord presence will show a site-specific icon instead of the generic web icon.
+
+To add your own custom icons:
+
+1. Go to your application in the [Discord Developer Portal](https://discord.com/developers/applications)
+2. Navigate to the "Rich Presence" > "Art Assets" section
+3. Upload your icons with names matching the `iconKey` values in `server/siteIcons.ts`
+4. For example, upload an icon named `youtube` for YouTube, `github` for GitHub, etc.
+5. Add new site mappings to the `siteIcons` array in `server/siteIcons.ts`
+
+The default configuration includes mappings for 100+ popular websites. You can customize this list by editing the `siteIcons.ts` file.
 
 ## 📄 License
 

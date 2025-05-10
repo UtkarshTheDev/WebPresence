@@ -1,5 +1,6 @@
 import * as DiscordRPC from "discord-rpc";
 import { config } from "./config.ts";
+import { findIconForDomain } from "./siteIcons.ts";
 
 // Discord RPC client
 let rpc: DiscordRPC.Client | null = null;
@@ -148,6 +149,19 @@ function setActivity(title: string, url: string) {
       initialTimestamp = now;
     }
 
+    // Find site-specific icon if available
+    const siteIcon = findIconForDomain(domain);
+
+    // Use site-specific display name if available
+    const displayDomain = siteIcon?.displayName || domain;
+
+    // Log which icon is being used
+    if (siteIcon) {
+      console.log(`Using custom icon for ${domain}: ${siteIcon.iconKey}`);
+    } else {
+      console.log(`Using default web icon for ${domain}`);
+    }
+
     // Set Rich Presence with customized format
     rpc.setActivity({
       // Main title with customized prefix: "[prefix] - [page title]"
@@ -161,9 +175,9 @@ function setActivity(title: string, url: string) {
       // Use continuous timer if enabled, otherwise use current time
       startTimestamp: initialTimestamp,
 
-      // Use Discord application assets
-      largeImageKey: presenceConfig.largeImageKey,
-      largeImageText: domain,
+      // Use site-specific icon if available, otherwise use default web icon
+      largeImageKey: siteIcon?.iconKey || presenceConfig.largeImageKey,
+      largeImageText: displayDomain,
 
       // Add small image (avatar)
       smallImageKey: presenceConfig.smallImageKey,
