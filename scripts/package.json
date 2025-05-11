@@ -1,0 +1,17 @@
+{
+  "name": "web-presence-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for Web Presence project",
+  "main": "icon-collector.js",
+  "scripts": {
+    "collect-icons": "node icon-collector.js",
+    "collect-icons-with-proxy": "node icon-collector.js --use-proxies"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "https-proxy-agent": "^7.0.2",
+    "p-limit": "^3.1.0",
+    "sharp": "^0.32.6"
+  }
+}
