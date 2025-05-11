@@ -66,8 +66,7 @@ export const siteIcons: SiteIcon[] = [
   // Social media
   { domain: "instagram.com", iconKey: "instagram", displayName: "Instagram" },
   { domain: "facebook.com", iconKey: "facebook", displayName: "Facebook" },
-  { domain: "twitter.com", iconKey: "twitter", displayName: "Twitter" },
-  { domain: "x.com", iconKey: "twitter", displayName: "X" },
+  { domain: "x.com", iconKey: "twitter", displayName: "Twitter (X)" },
   { domain: "threads.net", iconKey: "threads", displayName: "Threads" },
   { domain: "linkedin.com", iconKey: "linkedin", displayName: "LinkedIn" },
   { domain: "reddit.com", iconKey: "reddit", displayName: "Reddit" },
@@ -120,8 +119,6 @@ export const siteIcons: SiteIcon[] = [
     iconKey: "intellij",
     displayName: "IntelliJ IDEA",
   },
-  { domain: "pycharm", iconKey: "pycharm", displayName: "PyCharm" },
-  { domain: "webstorm", iconKey: "webstorm", displayName: "WebStorm" },
   { domain: "render.com", iconKey: "render", displayName: "Render" },
   { domain: "railway.app", iconKey: "railway", displayName: "Railway" },
   { domain: "fly.io", iconKey: "flyio", displayName: "Fly.io" },
@@ -185,10 +182,9 @@ export const siteIcons: SiteIcon[] = [
 
   // AI & ML Platforms
   { domain: "openai.com", iconKey: "openai", displayName: "OpenAI" },
-  { domain: "chat.openai.com", iconKey: "chatgpt", displayName: "ChatGPT" },
+  { domain: "chatgpt.com", iconKey: "chatgpt", displayName: "ChatGPT" },
   { domain: "anthropic.com", iconKey: "anthropic", displayName: "Anthropic" },
   { domain: "claude.ai", iconKey: "claude", displayName: "Claude" },
-  { domain: "bard.google.com", iconKey: "bard", displayName: "Google Bard" },
   {
     domain: "gemini.google.com",
     iconKey: "gemini",
@@ -281,7 +277,6 @@ export const siteIcons: SiteIcon[] = [
   { domain: "vedantu.com", iconKey: "vedantu", displayName: "Vedantu" },
   { domain: "doubtnut.com", iconKey: "doubtnut", displayName: "Doubtnut" },
   { domain: "edx.org", iconKey: "edx", displayName: "edX" },
-  { domain: "brilliant.org", iconKey: "brilliant", displayName: "Brilliant" },
   {
     domain: "codecademy.com",
     iconKey: "codecademy",

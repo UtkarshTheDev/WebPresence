@@ -153,7 +153,16 @@ function setActivity(title: string, url: string) {
     const siteIcon = findIconForDomain(domain);
 
     // Use site-specific display name if available
-    const displayDomain = siteIcon?.displayName || domain;
+    let displayDomain = siteIcon?.displayName || domain;
+
+    // Ensure displayDomain is at least 2 characters long for Discord RPC validation
+    if (displayDomain.length < 2) {
+      // For very short domains like "x.com", use a more descriptive name
+      displayDomain = siteIcon?.displayName || `${domain} website`;
+      console.log(
+        `Domain name too short, using extended name: ${displayDomain}`
+      );
+    }
 
     // Log which icon is being used
     if (siteIcon) {
