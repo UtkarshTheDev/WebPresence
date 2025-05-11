@@ -11,8 +11,8 @@ Web Presence is a lightweight browser extension that displays your current web b
 ## ✨ Features
 
 - **Real-time Tracking**: Displays your active tab's information in Discord
-- **Custom Site Icons**: Shows site-specific icons for 200+ popular websites
-- **Extensive Site Support**: Includes AI tools, coding platforms, gaming sites, and more
+- **Custom Site Icons**: Shows site-specific icons for popular websites
+- **Focused Site Support**: Prioritizes development, gaming, and entertainment sites
 - **Cross-browser Support**: Works with Chrome (Manifest V3) and Firefox (Manifest V2)
 - **User Privacy**: Toggle presence on/off with a single click
 - **Elegant UI**: Clean, Discord-themed interface
@@ -94,15 +94,36 @@ bun build index.ts --target node --outfile dist/index.js
 
 Web Presence now supports custom icons for popular websites. When you visit a supported site, the Discord presence will show a site-specific icon instead of the generic web icon.
 
-To add your own custom icons:
+#### Automatic Icon Collection
 
-1. Find the icon you want to use in the `assets/site-icons` directory, or create your own
-2. Go to your application in the [Discord Developer Portal](https://discord.com/developers/applications)
-3. Navigate to the "Rich Presence" > "Art Assets" section
-4. Upload your icons with names matching the `iconKey` values in `server/siteIcons.ts`
-5. For example, upload an icon named `youtube` for YouTube, `github` for GitHub, etc.
+We've included a script to automatically download icons for all the websites listed in `siteIcons.ts`:
 
-The default configuration includes mappings for 200+ popular websites. You can customize this list by editing the `siteIcons.ts` file.
+```bash
+cd scripts
+npm install
+npm run collect-icons
+```
+
+This script will:
+
+1. Parse all domains from `siteIcons.ts`
+2. Download icons from multiple sources
+3. Process them to the correct size and format
+4. Save them to the `assets/site-icons` directory
+5. Generate a report of successful and failed downloads
+
+For icons that couldn't be automatically downloaded, the script also generates a helper HTML file to assist with manual collection.
+
+#### Adding Icons to Discord
+
+Once you have the icons:
+
+1. Go to your application in the [Discord Developer Portal](https://discord.com/developers/applications)
+2. Navigate to the "Rich Presence" > "Art Assets" section
+3. Upload your icons with names matching the `iconKey` values in `server/siteIcons.ts`
+4. For example, upload an icon named `youtube` for YouTube, `github` for GitHub, etc.
+
+The default configuration includes mappings for the most popular websites that users would want to show in their Discord presence, focusing on development, gaming, and entertainment sites. You can customize this list by editing the `siteIcons.ts` file.
 
 ### Contributing Icons
 
