@@ -36,6 +36,19 @@ function setupErrorHandlers() {
     );
     // Keep the process running despite the rejection
   });
+
+  // Handle termination signals for graceful shutdown
+  process.on("SIGINT", async () => {
+    logger.info("Received SIGINT signal, shutting down gracefully...");
+    await stopServer();
+    process.exit(0);
+  });
+
+  process.on("SIGTERM", async () => {
+    logger.info("Received SIGTERM signal, shutting down gracefully...");
+    await stopServer();
+    process.exit(0);
+  });
 }
 
 /**
@@ -43,9 +56,12 @@ function setupErrorHandlers() {
  * @param options Optional configuration options
  * @returns A promise that resolves when the server is started
  */
-export async function startServer(options?: { port?: number }) {
+export async function startServer(options?: {
+  port?: number;
+  skipDiscord?: boolean;
+}) {
   // If server is already running, return
-  if (isRunning) {
+  if (isRunning || server !== null) {
     logger.info("Server is already running");
     return { success: true, port: config.getServer().port };
   }
@@ -73,9 +89,11 @@ export async function startServer(options?: { port?: number }) {
     // Initialize API routes
     app.use("/api", initRoutes(wss));
 
-    // Try to connect to Discord
-    logger.info("🚀 Initializing Discord RPC connection...");
-    await discord.connect();
+    // Try to connect to Discord (unless skipDiscord is true)
+    if (!options?.skipDiscord) {
+      logger.info("🚀 Initializing Discord RPC connection...");
+      await discord.connect();
+    }
 
     // Start the server
     const PORT = config.getServer().port;
@@ -86,12 +104,33 @@ export async function startServer(options?: { port?: number }) {
         return;
       }
 
-      server.listen(PORT, () => {
-        logger.success(`Server running on http://localhost:${PORT}`);
-        logger.success(`WebSocket server running on ws://localhost:${PORT}`);
-        isRunning = true;
-        resolve({ success: true, port: PORT });
+      // Add error handler for the server
+      server.on("error", (err: any) => {
+        if (err.code === "EADDRINUSE") {
+          logger.error(
+            `Port ${PORT} is already in use. Server may already be running.`
+          );
+          isRunning = true; // Mark as running since something is using the port
+          resolve({ success: false, port: PORT });
+        } else {
+          logger.error(`Server error: ${err.message}`, { error: err.stack });
+          resolve({ success: false, port: PORT });
+        }
       });
+
+      try {
+        server.listen(PORT, () => {
+          logger.success(`Server running on http://localhost:${PORT}`);
+          logger.success(`WebSocket server running on ws://localhost:${PORT}`);
+          isRunning = true;
+          resolve({ success: true, port: PORT });
+        });
+      } catch (listenError: any) {
+        logger.error(`Failed to start server: ${listenError.message}`, {
+          error: listenError.stack,
+        });
+        resolve({ success: false, port: PORT });
+      }
     });
   } catch (error: any) {
     logger.error("Failed to start server:", {
@@ -107,7 +146,7 @@ export async function startServer(options?: { port?: number }) {
  * @returns A promise that resolves when the server is stopped
  */
 export async function stopServer() {
-  if (!isRunning || !server) {
+  if (!isRunning && !server) {
     logger.info("Server is not running");
     return { success: true };
   }
@@ -116,18 +155,39 @@ export async function stopServer() {
     // Close the server
     return new Promise<{ success: boolean }>((resolve) => {
       if (!server) {
-        resolve({ success: false });
+        // Reset state even if server is null
+        isRunning = false;
+        wss = null;
+        resolve({ success: true });
         return;
       }
 
+      // Set a timeout in case server.close hangs
+      const timeout = setTimeout(() => {
+        logger.warn("Server close operation timed out, forcing cleanup");
+        isRunning = false;
+        server = null;
+        wss = null;
+        resolve({ success: true });
+      }, 5000);
+
+      // Try to close the server gracefully
       server.close(async () => {
+        clearTimeout(timeout);
         logger.info("Server stopped");
 
         // Clear Discord presence
-        if (discord.isConnected()) {
-          await discord.clearActivity();
+        try {
+          if (discord.isConnected()) {
+            await discord.clearActivity();
+          }
+        } catch (discordError: any) {
+          logger.warn(
+            `Error clearing Discord activity: ${discordError.message}`
+          );
         }
 
+        // Reset state
         isRunning = false;
         server = null;
         wss = null;
@@ -140,28 +200,181 @@ export async function stopServer() {
       error: error.message,
       stack: error.stack,
     });
+
+    // Force reset state even on error
+    isRunning = false;
+    server = null;
+    wss = null;
+
     return { success: false };
   }
 }
 
 /**
  * Check if the server is running
+ * @param options Optional configuration options
  * @returns True if the server is running, false otherwise
  */
-export function isServerRunning() {
-  return isRunning;
+export function isServerRunning(options?: {
+  checkPort?: boolean;
+  checkApi?: boolean;
+}) {
+  // Default options
+  const opts = {
+    checkPort: true,
+    checkApi: false,
+    ...options,
+  };
+
+  // If the server is running in the current process, return true
+  if (isRunning) {
+    return true;
+  }
+
+  // If we're not checking additional methods, return false
+  if (!opts.checkPort && !opts.checkApi) {
+    return false;
+  }
+
+  // Check if the port is in use (if requested)
+  if (opts.checkPort) {
+    try {
+      const serverPort = config.getServer().port;
+      const netstatCommand =
+        process.platform === "win32"
+          ? `netstat -ano | findstr :${serverPort}`
+          : `netstat -tuln | grep :${serverPort}`;
+
+      const output = require("child_process").execSync(netstatCommand, {
+        encoding: "utf8",
+      });
+
+      if (output.trim().length > 0) {
+        // Port is in use, which suggests the server is running
+        return true;
+      }
+    } catch (e) {
+      // If netstat fails, continue with other checks
+    }
+  }
+
+  // Check if the API is responding (if requested)
+  if (opts.checkApi) {
+    try {
+      const serverPort = config.getServer().port;
+      const http = require("http");
+
+      // Try to connect to the server (synchronous check)
+      const req = http.get(`http://localhost:${serverPort}/api/status`, {
+        timeout: 500, // Short timeout to avoid hanging
+      });
+
+      // If we get here without an error, the server is likely running
+      req.on("response", () => {
+        req.destroy(); // Clean up the request
+        return true;
+      });
+
+      req.on("error", () => {
+        // Error connecting, server might not be running
+        return false;
+      });
+
+      // Wait a short time for the request to complete
+      require("child_process").execSync("sleep 0.5", { stdio: "ignore" });
+    } catch (e) {
+      // If the request fails, continue with other checks
+    }
+  }
+
+  // If we get here, all checks have failed
+  return false;
 }
 
 /**
  * Get the current server status
+ * @param options Optional configuration options
  * @returns An object with server status information
  */
-export function getServerStatus() {
+export function getServerStatus(options?: {
+  checkPort?: boolean;
+  checkApi?: boolean;
+  checkDaemon?: boolean;
+}) {
+  // Default options
+  const opts = {
+    checkPort: true,
+    checkApi: false,
+    checkDaemon: false,
+    ...options,
+  };
+
+  // Check if the server is running using our improved function
+  const serverRunning = isServerRunning({
+    checkPort: opts.checkPort,
+    checkApi: opts.checkApi,
+  });
+
+  // Check if the daemon is running (if requested)
+  let daemonRunning = false;
+  if (opts.checkDaemon) {
+    try {
+      const fs = require("fs");
+      const os = require("os");
+      const path = require("path");
+
+      // Check if the PID file exists
+      const pidFile = path.join(
+        os.homedir(),
+        ".webpresence",
+        "webpresence.pid"
+      );
+      if (fs.existsSync(pidFile)) {
+        const pid = parseInt(fs.readFileSync(pidFile, "utf8").trim(), 10);
+
+        // Check if the process is running
+        try {
+          process.kill(pid, 0);
+          daemonRunning = true;
+        } catch (e) {
+          // Process is not running
+        }
+      }
+    } catch (e) {
+      // Error checking daemon status
+    }
+  }
+
+  // Check if the port is in use (additional check)
+  let portInUse = false;
+  try {
+    const serverPort = config.getServer().port;
+    const netstatCommand =
+      process.platform === "win32"
+        ? `netstat -ano | findstr :${serverPort}`
+        : `netstat -tuln | grep :${serverPort}`;
+
+    const output = require("child_process").execSync(netstatCommand, {
+      encoding: "utf8",
+    });
+
+    if (output.trim().length > 0) {
+      // Port is in use, which suggests the server is running
+      portInUse = true;
+    }
+  } catch (e) {
+    // If netstat fails, continue with other checks
+  }
+
+  // Determine if the server is running based on all checks
+  const running = isRunning || serverRunning || daemonRunning || portInUse;
+
   return {
-    running: isRunning,
-    port: isRunning ? config.getServer().port : null,
+    running,
+    port: running ? config.getServer().port : null,
     discordConnected: discord.isConnected(),
-    presenceEnabled: isRunning ? true : false, // This will be updated with actual state in future
+    presenceEnabled: running ? true : false, // This will be updated with actual state in future
+    daemonRunning: daemonRunning,
   };
 }
 

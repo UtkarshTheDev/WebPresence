@@ -42,6 +42,9 @@ npm install -g webpresence
 # Start the server
 webpresence start
 
+# Start the server in daemon mode (background)
+webpresence start -d
+
 # Check server status
 webpresence status
 
@@ -55,7 +58,7 @@ webpresence config --prefix "Browsing"
 webpresence config --disable-site "example.com"
 webpresence config --always-show "github.com"
 
-# Stop the server
+# Stop the server (works for both normal and daemon mode)
 webpresence stop
 
 # Get help
@@ -114,6 +117,26 @@ const result = await WebPresence.updatePreferences(preferences);
 - `getServerStatus()` - Get current server status
 - `togglePresence(enabled?: boolean)` - Enable or disable Discord presence
 - `updatePreferences(preferences: UserPreferences)` - Update user preferences
+
+### Daemon Mode
+
+WebPresence can run as a background daemon process, allowing you to close the terminal while keeping the server running:
+
+```bash
+# Start in daemon mode
+webpresence start -d
+
+# Check daemon status
+webpresence status
+
+# Stop the daemon
+webpresence stop
+```
+
+The daemon process creates the following files in your home directory:
+
+- `~/.webpresence/webpresence.pid` - Contains the process ID of the daemon
+- `~/.webpresence/webpresence.log` - Log file for daemon output
 
 ## Changelog
 

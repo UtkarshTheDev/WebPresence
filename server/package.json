@@ -6,7 +6,8 @@
   "main": "dist/api.js",
   "types": "dist/api.d.ts",
   "bin": {
-    "webpresence": "dist/cli.js"
+    "webpresence": "dist/cli.js",
+    "webpresence-daemon": "dist/daemon.js"
   },
   "exports": {
     ".": {

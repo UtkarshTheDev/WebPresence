@@ -1,6 +1,6 @@
 /**
  * CLI Types
- * 
+ *
  * Type definitions for the WebPresence CLI.
  */
 
@@ -9,6 +9,7 @@
  */
 export interface StartOptions {
   port?: number;
+  daemon?: boolean;
 }
 
 /**

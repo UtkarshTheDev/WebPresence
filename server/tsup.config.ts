@@ -1,7 +1,13 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/api.ts", "src/cli.ts"],
+  entry: [
+    "src/index.ts",
+    "src/api.ts",
+    "src/cli.ts",
+    "src/utils/daemon.ts",
+    "src/daemon.ts", // Add standalone daemon script
+  ],
   format: ["esm"],
   target: "node16", // Lower target for wider compatibility
   outDir: "dist",

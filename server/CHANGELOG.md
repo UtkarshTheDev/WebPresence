@@ -6,17 +6,37 @@ All notable changes to the WebPresence package will be documented in this file.
 
 ### Added
 
-- Planned: Daemon mode to run server in background
-- Planned: Auto-update checking
-- Planned: Configuration wizard for interactive CLI setup
+- Daemon mode to run server in background with `-d` flag
+- PID file management for daemon processes
+- Graceful shutdown handling for SIGTERM and SIGINT signals
+- Daemon status information in the status command
+- Daemon log file for troubleshooting
 
 ### Changed
 
-- Planned: Improved performance and reduced memory usage
+- Improved CLI with daemon mode instructions
+- Enhanced server startup and shutdown process
 
 ### Fixed
 
-- Planned: Additional edge cases in Discord connection handling
+- Proper cleanup of resources when server is terminated
+- Improved error handling for daemon processes
+- Fixed "Listen method has been called more than once without closing" error in daemon mode
+- Added safeguards to prevent multiple server instances from starting
+- Enhanced server shutdown process with timeout protection
+- Improved state management to ensure clean server restarts
+- Fixed daemon detection in status command
+- Added port-in-use detection for more accurate server status reporting
+- Improved stop command to handle various edge cases
+- Added API endpoint for stopping the server remotely
+- Enhanced daemon process detection with multiple verification methods
+- Fixed TypeScript errors in fetch API usage
+- Improved timeout handling for network requests
+- Added proper type definitions for better code reliability
+- Fixed server status detection when running as daemon
+- Added comprehensive server status checking with multiple verification methods
+- Improved process detection and termination in stop command
+- Added force option to stop command for handling stubborn processes
 
 ## [1.1.0] - 2025-04-12
 

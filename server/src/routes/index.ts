@@ -2,6 +2,7 @@ import { Router } from "express";
 import { config } from "../config/index.js";
 import { getPresenceState, togglePresence } from "../services/websocket.js";
 import { WebSocketServer } from "ws";
+import { stopServer } from "../index.js";
 
 /**
  * Initialize API routes
@@ -59,6 +60,33 @@ export function initRoutes(wss: WebSocketServer) {
     } else {
       res.status(400).json({ error: "Invalid preferences" });
     }
+  });
+
+  // Stop server endpoint
+  router.post("/stop", async (req, res) => {
+    // Notify all clients that the server is shutting down
+    wss.clients.forEach((client) => {
+      client.send(
+        JSON.stringify({
+          type: "shutdown",
+          message: "Server is shutting down",
+        })
+      );
+    });
+
+    // Send response before stopping the server
+    res.json({ success: true, message: "Server is shutting down" });
+
+    // Wait a moment to ensure the response is sent
+    setTimeout(async () => {
+      try {
+        await stopServer();
+        // The server will be stopped, so no need to do anything else
+      } catch (error) {
+        // If there's an error, we can't send it to the client as the response is already sent
+        console.error("Error stopping server:", error);
+      }
+    }, 500);
   });
 
   return router;
