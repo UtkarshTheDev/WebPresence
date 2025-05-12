@@ -16,7 +16,7 @@
       "128": "icons/icon128.png"
     }
   },
-  "permissions": ["storage", "tabs", "http://localhost:3000/"],
+  "permissions": ["storage", "tabs", "http://localhost:8874/"],
   "background": {
     "scripts": ["background.js"]
   },

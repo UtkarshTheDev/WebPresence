@@ -92,7 +92,7 @@ function updateState({ enabled, connected, preferences }) {
 // Check if the Discord connection is active
 async function checkDiscordConnection() {
   try {
-    const response = await fetch("http://localhost:3000/status");
+    const response = await fetch("http://localhost:8874/status");
     const data = await response.json();
 
     discordStatusEl.className = data.discordConnected

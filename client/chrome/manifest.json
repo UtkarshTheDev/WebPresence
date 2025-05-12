@@ -17,7 +17,7 @@
     }
   },
   "permissions": ["storage", "tabs"],
-  "host_permissions": ["http://localhost:3000/"],
+  "host_permissions": ["http://localhost:8874/"],
   "background": {
     "service_worker": "background.js",
     "type": "module"

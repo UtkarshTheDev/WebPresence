@@ -9,6 +9,7 @@ If you're experiencing issues with the Discord Web Presence extension, this guid
 This error occurs when the server can't establish a connection with Discord's Rich Presence service.
 
 **Possible causes:**
+
 - Discord desktop app is not running
 - Discord's Game Activity feature is disabled
 - Firewall is blocking the connection
@@ -18,27 +19,33 @@ This error occurs when the server can't establish a connection with Discord's Ri
 **Solutions:**
 
 1. **Make sure Discord is running**
+
    - Ensure you're running the Discord desktop application (not the web or mobile version)
    - Restart Discord completely (close it from the system tray and reopen)
 
 2. **Check Discord settings**
+
    - Open Discord
    - Go to User Settings (gear icon)
    - Navigate to "Activity Settings" > "Activity Status"
    - Make sure the toggle for "Display current activity as a status message" is ON
 
 3. **Run the Discord connection checker**
+
    ```bash
    cd server
    bun run check-discord
    ```
+
    This will tell you if your Discord installation is properly configured for RPC connections.
 
 4. **Check firewall settings**
+
    - Make sure your firewall isn't blocking Discord or the Web Presence server
    - Try temporarily disabling your firewall to test if that's the issue
 
 5. **Run Discord as administrator** (Windows only)
+
    - Right-click on Discord shortcut
    - Select "Run as administrator"
 
@@ -56,13 +63,15 @@ This means your browser extension can't connect to the local server.
 **Solutions:**
 
 1. **Make sure the server is running**
+
    - Open a terminal
    - Navigate to the server directory
    - Run `bun start`
-   - Verify it shows "Server running on http://localhost:3000"
+   - Verify it shows "Server running on http://localhost:8874"
 
 2. **Check for port conflicts**
-   - Make sure no other application is using port 3000
+
+   - Make sure no other application is using port 8874
    - You can change the port in `server/index.ts` if needed
 
 3. **Check browser permissions**
@@ -74,6 +83,7 @@ This means your browser extension can't connect to the local server.
 This means the server is running but can't connect to Discord.
 
 **Solutions:**
+
 - Follow the solutions for "RPC_CONNECTION_TIMEOUT" above
 - Try restarting both Discord and the server
 
@@ -84,10 +94,12 @@ If the extension appears to be working but your presence isn't showing up in Dis
 **Solutions:**
 
 1. **Check Discord status**
+
    - Make sure your Discord status is not set to "Invisible"
    - Check if "Display current activity as a status message" is enabled
 
 2. **Toggle the extension**
+
    - Try turning the extension off and on again
    - Check the server logs for any errors
 
@@ -105,7 +117,6 @@ If the extension appears to be working but your presence isn't showing up in Dis
      - Windows: `discord.exe --debug`
      - Mac: `open -a Discord --args --debug`
      - Linux: `discord --debug`
-   
 2. Open Discord Developer Tools:
    - Press Ctrl+Shift+I (or Cmd+Option+I on Mac)
    - Go to the "Console" tab
@@ -114,6 +125,7 @@ If the extension appears to be working but your presence isn't showing up in Dis
 ### Checking Server Logs
 
 Run the server in development mode for more detailed logs:
+
 ```bash
 cd server
 bun run dev
@@ -122,6 +134,7 @@ bun run dev
 ### Reinstalling Discord
 
 If all else fails, try reinstalling Discord:
+
 1. Uninstall Discord
 2. Delete any remaining Discord folders:
    - Windows: `%appdata%\Discord` and `%localappdata%\Discord`
@@ -160,4 +173,4 @@ This means the connection to Discord was established but then closed unexpectedl
 
 This means the browser extension can't connect to the local server.
 
-**Solution:** Make sure the server is running and accessible at http://localhost:3000.
+**Solution:** Make sure the server is running and accessible at http://localhost:8874.

@@ -1,5 +1,5 @@
 // Configuration
-const SERVER_URL = "ws://localhost:3000";
+const SERVER_URL = "ws://localhost:8874";
 let websocket = null;
 let connected = false;
 let enabled = true;
