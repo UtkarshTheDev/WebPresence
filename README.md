@@ -161,6 +161,10 @@ See the [CONTRIBUTING.md](CONTRIBUTING.md) file for detailed guidelines.
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## 📝 Changelog
+
+See [server/CHANGELOG.md](server/CHANGELOG.md) for a detailed list of changes in each version.
+
 ## 👏 Acknowledgements
 
 - [discord-rpc](https://www.npmjs.com/package/discord-rpc) for Discord integration
