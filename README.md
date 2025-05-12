@@ -36,6 +36,20 @@ Web Presence is a lightweight browser extension that displays your current web b
 
 #### 1. Server Setup
 
+You can install and run the WebPresence server in two ways:
+
+**Option A: Using npm package (Recommended)**
+
+```bash
+# Install globally
+npm install -g webpresence
+
+# Start the server
+webpresence start
+```
+
+**Option B: From source**
+
 ```bash
 # Clone the repository
 git clone https://github.com/utkarshthedev/webpresence.git
@@ -43,8 +57,8 @@ cd webpresence
 
 # Install and start the server
 cd server
-bun install
-bun start
+npm install
+npm start
 ```
 
 #### 2. Browser Extension Setup
@@ -65,7 +79,7 @@ bun start
 
 ## 💡 How to Use
 
-1. Ensure the server is running (`bun start` in the server directory)
+1. Ensure the server is running (either `webpresence start` if installed globally, or `npm start` in the server directory)
 2. Verify Discord is open on your computer
 3. Click the Web Presence extension icon in your browser
 4. Toggle the switch to enable Rich Presence

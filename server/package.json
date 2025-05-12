@@ -1,15 +1,50 @@
 {
-  "name": "webpresence-server",
+  "name": "webpresence",
   "version": "1.0.0",
-  "description": "Discord Rich Presence for websites",
+  "description": "Discord Rich Presence for websites - Show your browsing activity in Discord",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/api.js",
+  "types": "dist/api.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/api.js",
+      "types": "./dist/api.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "build": "tsup",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run clean && npm run build"
   },
+  "keywords": [
+    "discord",
+    "rich-presence",
+    "presence",
+    "discord-rpc",
+    "browser",
+    "web",
+    "activity"
+  ],
+  "author": "Utkarsh Tiwari <utkarshthedev@gmail.com>",
+  "homepage": "https://github.com/utkarshthedev/webpresence",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/utkarshthedev/webpresence.git"
+  },
+  "bugs": {
+    "url": "https://github.com/utkarshthedev/webpresence/issues"
+  },
+  "license": "MIT",
   "devDependencies": {
     "@types/cors": "^2.8.18",
     "@types/discord-rpc": "^4.0.9",

@@ -1,10 +1,10 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ['src/index.ts'],
-  format: ['esm'],
-  target: 'node18',
-  outDir: 'dist',
+  entry: ["src/index.ts", "src/api.ts"],
+  format: ["esm"],
+  target: "node16", // Lower target for wider compatibility
+  outDir: "dist",
   clean: true,
   sourcemap: true,
   dts: true,
@@ -14,4 +14,6 @@ export default defineConfig({
   skipNodeModulesBundle: true,
   shims: true,
   keepNames: true,
+  treeshake: true,
+  external: ["discord-rpc", "express", "ws", "cors"],
 });
