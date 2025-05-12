@@ -1,13 +1,13 @@
 /**
  * Test script for site icons mapping
- * 
+ *
  * This script tests the site icon mapping functionality by checking
  * if various domains correctly map to their expected icons.
- * 
- * Run with: bun run test-site-icons.ts
+ *
+ * Run with: npx tsx test-site-icons.ts
  */
 
-import { findIconForDomain, siteIcons } from "./siteIcons.ts";
+import { findIconForDomain, siteIcons } from "./src/data/siteIcons.js";
 
 // Test domains
 const testDomains = [
@@ -33,13 +33,17 @@ console.log(`Total site icons defined: ${siteIcons.length}`);
 console.log("\nTesting domain matching:");
 
 // Test each domain
-testDomains.forEach(domain => {
+testDomains.forEach((domain) => {
   const siteIcon = findIconForDomain(domain);
-  
+
   if (siteIcon) {
-    console.log(`✅ ${domain} -> ${siteIcon.iconKey} (${siteIcon.displayName || domain})`);
+    console.log(
+      `✅ ${domain} -> ${siteIcon.iconKey} (${siteIcon.displayName || domain})`
+    );
   } else {
-    console.log(`❌ ${domain} -> No matching icon found, will use default web icon`);
+    console.log(
+      `❌ ${domain} -> No matching icon found, will use default web icon`
+    );
   }
 });
 
@@ -52,13 +56,17 @@ const subdomains = [
   "pages.github.com",
 ];
 
-subdomains.forEach(domain => {
+subdomains.forEach((domain) => {
   const siteIcon = findIconForDomain(domain);
-  
+
   if (siteIcon) {
-    console.log(`✅ ${domain} -> ${siteIcon.iconKey} (${siteIcon.displayName || domain})`);
+    console.log(
+      `✅ ${domain} -> ${siteIcon.iconKey} (${siteIcon.displayName || domain})`
+    );
   } else {
-    console.log(`❌ ${domain} -> No matching icon found, will use default web icon`);
+    console.log(
+      `❌ ${domain} -> No matching icon found, will use default web icon`
+    );
   }
 });
 
