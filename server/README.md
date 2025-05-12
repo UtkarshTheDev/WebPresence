@@ -115,6 +115,10 @@ const result = await WebPresence.updatePreferences(preferences);
 - `togglePresence(enabled?: boolean)` - Enable or disable Discord presence
 - `updatePreferences(preferences: UserPreferences)` - Update user preferences
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed list of changes in each version.
+
 ### Configuration
 
 Access and modify configuration through the `config` object:

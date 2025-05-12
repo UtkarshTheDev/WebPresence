@@ -36,7 +36,9 @@ async function connectToDiscord() {
         rpc.destroy();
       } catch (e) {
         // Ignore errors during cleanup
-        logger.warn("Error during Discord RPC client cleanup (non-critical)", { error: e });
+        logger.warn("Error during Discord RPC client cleanup (non-critical)", {
+          error: e,
+        });
       }
     }
 
@@ -50,9 +52,11 @@ async function connectToDiscord() {
     rpc.on("ready", () => {
       rpcReady = true;
       discordConfig.reconnectAttempts = 0;
-      logger.info("✅ Discord RPC ready - Rich Presence can now be displayed");
+      logger.success(
+        "✅ Discord RPC ready - Rich Presence can now be displayed"
+      );
       if (rpc && rpc.user) {
-        logger.info(
+        logger.success(
           `✅ Connected as Discord user: ${rpc.user.username}#${rpc.user.discriminator}`
         );
       }
@@ -60,7 +64,7 @@ async function connectToDiscord() {
 
     rpc.on("connected", () => {
       rpcConnected = true;
-      logger.info("✅ Connected to Discord RPC service");
+      logger.success("✅ Connected to Discord RPC service");
     });
 
     rpc.on("disconnected", () => {
@@ -73,7 +77,9 @@ async function connectToDiscord() {
 
       // Check if we've exceeded the maximum reconnect attempts
       if (discordConfig.reconnectAttempts > maxReconnectAttempts) {
-        logger.warn(`Maximum reconnect attempts (${maxReconnectAttempts}) reached. Will try again in 60 seconds.`);
+        logger.warn(
+          `Maximum reconnect attempts (${maxReconnectAttempts}) reached. Will try again in 60 seconds.`
+        );
         // Reset counter but keep trying with a longer delay
         discordConfig.reconnectAttempts = 1;
         reconnectTimeout = setTimeout(connectToDiscord, 60000);
@@ -106,7 +112,10 @@ async function connectToDiscord() {
       throw error;
     });
   } catch (error: any) {
-    logger.error("❌ Failed to connect to Discord:", { error: error.message, stack: error.stack });
+    logger.error("❌ Failed to connect to Discord:", {
+      error: error.message,
+      stack: error.stack,
+    });
 
     // Provide more helpful error messages
     if (error.message === "RPC_CONNECTION_TIMEOUT") {
@@ -135,7 +144,9 @@ async function connectToDiscord() {
     // Check if we've exceeded the maximum reconnect attempts
     discordConfig.reconnectAttempts++;
     if (discordConfig.reconnectAttempts > maxReconnectAttempts) {
-      logger.warn(`Maximum reconnect attempts (${maxReconnectAttempts}) reached. Will try again in 60 seconds.`);
+      logger.warn(
+        `Maximum reconnect attempts (${maxReconnectAttempts}) reached. Will try again in 60 seconds.`
+      );
       // Reset counter but keep trying with a longer delay
       discordConfig.reconnectAttempts = 1;
       reconnectTimeout = setTimeout(connectToDiscord, 60000);
@@ -264,11 +275,16 @@ function setActivity(title: string, url: string) {
     return Promise.race([setActivityPromise, timeoutPromise])
       .then(() => true)
       .catch((error) => {
-        logger.error("Error setting activity:", { error: error.message, stack: error.stack });
+        logger.error("Error setting activity:", {
+          error: error.message,
+          stack: error.stack,
+        });
 
         // If we get an error here, the connection might be broken
         if (rpcConnected) {
-          logger.warn("Discord connection appears broken, attempting to reconnect");
+          logger.warn(
+            "Discord connection appears broken, attempting to reconnect"
+          );
           rpcConnected = false;
           rpcReady = false;
           // Try to reconnect
@@ -278,7 +294,10 @@ function setActivity(title: string, url: string) {
         return false;
       });
   } catch (error: any) {
-    logger.error("Error in setActivity:", { error: error.message, stack: error.stack });
+    logger.error("Error in setActivity:", {
+      error: error.message,
+      stack: error.stack,
+    });
 
     // If we get an error here, the connection might be broken
     if (rpcConnected) {
@@ -337,10 +356,15 @@ function clearActivity() {
         return true;
       })
       .catch((error) => {
-        logger.error("Error clearing activity:", { error: error.message, stack: error.stack });
+        logger.error("Error clearing activity:", {
+          error: error.message,
+          stack: error.stack,
+        });
 
         // If we get an error here, the connection might be broken
-        logger.warn("Discord connection appears broken, attempting to reconnect");
+        logger.warn(
+          "Discord connection appears broken, attempting to reconnect"
+        );
         rpcConnected = false;
         rpcReady = false;
         // Try to reconnect
@@ -349,7 +373,10 @@ function clearActivity() {
         return false;
       });
   } catch (error: any) {
-    logger.error("Error in clearActivity:", { error: error.message, stack: error.stack });
+    logger.error("Error in clearActivity:", {
+      error: error.message,
+      stack: error.stack,
+    });
 
     // If we get an error here, the connection might be broken
     logger.warn("Discord connection appears broken, attempting to reconnect");

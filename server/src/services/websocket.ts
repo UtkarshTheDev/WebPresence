@@ -128,7 +128,10 @@ export function initWebSocketServer(server: Server) {
               return;
             }
 
-            logger.info(`Tab updated: ${title} - ${domain}`);
+            // Only log in verbose mode or when running as non-CLI
+            if (logger.isVerbose()) {
+              logger.info(`Tab updated: ${title} - ${domain}`);
+            }
 
             if (discord.isConnected()) {
               // If this is an always-enabled site and presence is globally disabled,

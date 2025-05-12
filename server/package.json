@@ -1,6 +1,6 @@
 {
   "name": "webpresence",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Discord Rich Presence for websites - Show your browsing activity in Discord",
   "type": "module",
   "main": "dist/api.js",
@@ -17,7 +17,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "engines": {
     "node": ">=16.0.0"

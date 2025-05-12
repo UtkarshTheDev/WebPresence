@@ -87,8 +87,8 @@ export async function startServer(options?: { port?: number }) {
       }
 
       server.listen(PORT, () => {
-        logger.info(`Server running on http://localhost:${PORT}`);
-        logger.info(`WebSocket server running on ws://localhost:${PORT}`);
+        logger.success(`Server running on http://localhost:${PORT}`);
+        logger.success(`WebSocket server running on ws://localhost:${PORT}`);
         isRunning = true;
         resolve({ success: true, port: PORT });
       });

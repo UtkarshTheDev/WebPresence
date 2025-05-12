@@ -22,6 +22,7 @@ import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { StartOptions, ToggleOptions, ConfigOptions } from "./types/cli.js";
+import { logger } from "./utils/logger.js";
 
 // Get package.json for version info
 const __filename = fileURLToPath(import.meta.url);
@@ -38,7 +39,15 @@ program
   .description(
     "Discord Rich Presence for websites - Show your browsing activity in Discord"
   )
-  .version(packageJson.version);
+  .version(packageJson.version)
+  .option("-v, --verbose", "Enable verbose output")
+  .hook("preAction", (thisCommand, actionCommand) => {
+    // Set verbosity based on command line option
+    const options = actionCommand.opts();
+    if (options.verbose) {
+      logger.setVerbose(true);
+    }
+  });
 
 // Start command
 program
@@ -47,7 +56,7 @@ program
   .option("-p, --port <port>", "Port to run the server on", parseInt)
   .action(async (options: StartOptions) => {
     if (isServerRunning()) {
-      console.log(chalk.yellow("Server is already running"));
+      logger.warn("Server is already running");
       return;
     }
 
@@ -57,20 +66,18 @@ program
       const result = await startServer({ port: options.port });
 
       if (result.success) {
-        spinner.succeed(chalk.green(`Server started on port ${result.port}`));
-        console.log(chalk.blue("✓ WebSocket server running"));
-        console.log(chalk.blue("✓ Discord RPC initialized"));
-        console.log(
-          chalk.gray("\nYour browser extension should now be able to connect.")
+        spinner.succeed(`Server started on port ${result.port}`);
+        logger.success("✓ WebSocket server running");
+        logger.success("✓ Discord RPC initialized");
+        logger.important(
+          "\nYour browser extension should now be able to connect."
         );
-        console.log(
-          chalk.gray("Keep this terminal open to maintain the connection.")
-        );
+        logger.important("Keep this terminal open to maintain the connection.");
       } else {
-        spinner.fail(chalk.red("Failed to start server"));
+        spinner.fail("Failed to start server");
       }
     } catch (error: any) {
-      spinner.fail(chalk.red(`Error starting server: ${error.message}`));
+      spinner.fail(`Error starting server: ${error.message}`);
     }
   });
 
@@ -80,7 +87,7 @@ program
   .description("Stop the WebPresence server")
   .action(async () => {
     if (!isServerRunning()) {
-      console.log(chalk.yellow("Server is not running"));
+      logger.warn("Server is not running");
       return;
     }
 
@@ -90,12 +97,12 @@ program
       const result = await stopServer();
 
       if (result.success) {
-        spinner.succeed(chalk.green("Server stopped"));
+        spinner.succeed("Server stopped");
       } else {
-        spinner.fail(chalk.red("Failed to stop server"));
+        spinner.fail("Failed to stop server");
       }
     } catch (error: any) {
-      spinner.fail(chalk.red(`Error stopping server: ${error.message}`));
+      spinner.fail(`Error stopping server: ${error.message}`);
     }
   });
 
@@ -107,21 +114,34 @@ program
     const status = getServerStatus();
 
     console.log(chalk.bold("\nWebPresence Status:"));
-    console.log(
-      chalk.blue("Server running:"),
-      status.running ? chalk.green("Yes") : chalk.red("No")
-    );
+
+    // Server status
+    process.stdout.write(chalk.blue("Server running: "));
+    if (status.running) {
+      console.log(chalk.green("Yes"));
+    } else {
+      console.log(chalk.red("No"));
+    }
 
     if (status.running) {
+      // Port
       console.log(chalk.blue("Port:"), chalk.green(status.port));
-      console.log(
-        chalk.blue("Discord connected:"),
-        status.discordConnected ? chalk.green("Yes") : chalk.yellow("No")
-      );
-      console.log(
-        chalk.blue("Presence enabled:"),
-        status.presenceEnabled ? chalk.green("Yes") : chalk.yellow("No")
-      );
+
+      // Discord connection
+      process.stdout.write(chalk.blue("Discord connected: "));
+      if (status.discordConnected) {
+        console.log(chalk.green("Yes"));
+      } else {
+        console.log(chalk.yellow("No"));
+      }
+
+      // Presence status
+      process.stdout.write(chalk.blue("Presence enabled: "));
+      if (status.presenceEnabled) {
+        console.log(chalk.green("Yes"));
+      } else {
+        console.log(chalk.yellow("No"));
+      }
     }
   });
 
@@ -133,8 +153,8 @@ program
   .option("--off", "Disable Discord presence")
   .action(async (options: ToggleOptions) => {
     if (!isServerRunning()) {
-      console.log(chalk.yellow("Server is not running. Start it first with:"));
-      console.log(chalk.cyan("  webpresence start"));
+      logger.warn("Server is not running. Start it first with:");
+      logger.important("  webpresence start");
       return;
     }
 
@@ -149,15 +169,13 @@ program
 
       if (result.success) {
         spinner.succeed(
-          chalk.green(
-            `Discord presence ${result.enabled ? "enabled" : "disabled"}`
-          )
+          `Discord presence ${result.enabled ? "enabled" : "disabled"}`
         );
       } else {
-        spinner.fail(chalk.red("Failed to toggle Discord presence"));
+        spinner.fail("Failed to toggle Discord presence");
       }
     } catch (error: any) {
-      spinner.fail(chalk.red(`Error toggling presence: ${error.message}`));
+      spinner.fail(`Error toggling presence: ${error.message}`);
     }
   });
 
@@ -186,18 +204,25 @@ program
       const serverConfig = config.getServer();
 
       console.log(chalk.bold("\nWebPresence Configuration:"));
+
+      // Server port
       console.log(chalk.blue("Server port:"), chalk.green(serverConfig.port));
+
+      // Prefix text
       console.log(
         chalk.blue("Prefix text:"),
         chalk.green(userPrefs.prefixText)
       );
-      console.log(
-        chalk.blue("Continuous timer:"),
-        userPrefs.continuousTimer
-          ? chalk.green("Enabled")
-          : chalk.yellow("Disabled")
-      );
 
+      // Continuous timer
+      process.stdout.write(chalk.blue("Continuous timer: "));
+      if (userPrefs.continuousTimer) {
+        console.log(chalk.green("Enabled"));
+      } else {
+        console.log(chalk.yellow("Disabled"));
+      }
+
+      // Disabled sites
       console.log(chalk.blue("\nDisabled sites:"));
       if (userPrefs.disabledSites.length === 0) {
         console.log(chalk.gray("  None"));
@@ -207,6 +232,7 @@ program
         });
       }
 
+      // Always-enabled sites
       console.log(chalk.blue("\nAlways-enabled sites:"));
       if (userPrefs.alwaysEnabledSites.length === 0) {
         console.log(chalk.gray("  None"));
@@ -263,19 +289,17 @@ program
           const result = await updatePreferences(updates);
 
           if (result.success) {
-            spinner.succeed(chalk.green("Configuration updated"));
+            spinner.succeed("Configuration updated");
           } else {
-            spinner.fail(chalk.red("Failed to update configuration"));
+            spinner.fail("Failed to update configuration");
           }
         } else {
           // If server is not running, update directly
           config.updateUserPreferences(updates);
-          spinner.succeed(chalk.green("Configuration updated"));
+          spinner.succeed("Configuration updated");
         }
       } catch (error: any) {
-        spinner.fail(
-          chalk.red(`Error updating configuration: ${error.message}`)
-        );
+        spinner.fail(`Error updating configuration: ${error.message}`);
       }
     }
   });
