@@ -5,6 +5,9 @@
   "type": "module",
   "main": "dist/api.js",
   "types": "dist/api.d.ts",
+  "bin": {
+    "webpresence": "dist/cli.js"
+  },
   "exports": {
     ".": {
       "import": "./dist/api.js",
@@ -57,10 +60,13 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "chalk": "5.4.1",
+    "commander": "13.1.0",
     "cors": "^2.8.5",
     "discord-rpc": "^4.0.1",
     "express": "^5.1.0",
     "node-fetch": "^3.3.2",
+    "ora": "8.2.0",
     "ws": "^8.18.2"
   }
 }

@@ -46,6 +46,13 @@ npm install -g webpresence
 
 # Start the server
 webpresence start
+
+# Other available commands
+webpresence status    # Check server status
+webpresence toggle    # Toggle presence on/off
+webpresence config    # View or update configuration
+webpresence stop      # Stop the server
+webpresence help      # Show help
 ```
 
 **Option B: From source**

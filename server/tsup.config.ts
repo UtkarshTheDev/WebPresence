@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/api.ts"],
+  entry: ["src/index.ts", "src/api.ts", "src/cli.ts"],
   format: ["esm"],
   target: "node16", // Lower target for wider compatibility
   outDir: "dist",
@@ -15,5 +15,13 @@ export default defineConfig({
   shims: true,
   keepNames: true,
   treeshake: true,
-  external: ["discord-rpc", "express", "ws", "cors"],
+  external: [
+    "discord-rpc",
+    "express",
+    "ws",
+    "cors",
+    "commander",
+    "chalk",
+    "ora",
+  ],
 });

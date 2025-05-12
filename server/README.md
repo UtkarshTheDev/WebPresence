@@ -33,6 +33,35 @@ npm start
 
 ## Usage
 
+### As a CLI Tool
+
+```bash
+# Install globally
+npm install -g webpresence
+
+# Start the server
+webpresence start
+
+# Check server status
+webpresence status
+
+# Toggle Discord presence on/off
+webpresence toggle --on
+webpresence toggle --off
+
+# Configure preferences
+webpresence config --view
+webpresence config --prefix "Browsing"
+webpresence config --disable-site "example.com"
+webpresence config --always-show "github.com"
+
+# Stop the server
+webpresence stop
+
+# Get help
+webpresence help
+```
+
 ### As a Module
 
 ```javascript
