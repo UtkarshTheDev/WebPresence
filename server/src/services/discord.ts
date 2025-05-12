@@ -1,6 +1,7 @@
 import * as DiscordRPC from "discord-rpc";
 import { config } from "../config/index.js";
 import { findIconForDomain } from "../data/siteIcons.js";
+import { logger } from "../utils/logger.js";
 
 // Discord RPC client
 let rpc: DiscordRPC.Client | null = null;
@@ -13,6 +14,9 @@ let initialTimestamp: number | null = null;
 
 /**
  * Connect to Discord RPC
+ *
+ * This function attempts to establish a connection to Discord RPC.
+ * It includes robust error handling and automatic reconnection logic.
  */
 async function connectToDiscord() {
   // Clear any existing reconnect timeout
@@ -22,31 +26,33 @@ async function connectToDiscord() {
   }
 
   const discordConfig = config.getDiscord();
+  const maxReconnectAttempts = discordConfig.maxReconnectAttempts || 10;
 
   try {
     // Destroy existing client if there is one
     if (rpc) {
       try {
-        console.log("Cleaning up previous Discord RPC client...");
+        logger.info("Cleaning up previous Discord RPC client...");
         rpc.destroy();
       } catch (e) {
         // Ignore errors during cleanup
+        logger.warn("Error during Discord RPC client cleanup (non-critical)", { error: e });
       }
     }
 
     // Create new Discord RPC client
-    console.log("Creating Discord RPC client...");
+    logger.info("Creating Discord RPC client...");
     rpc = new DiscordRPC.Client({ transport: "ipc" });
 
-    console.log("Attempting to connect to Discord...");
+    logger.info("Attempting to connect to Discord...");
 
     // Set up event handlers before login
     rpc.on("ready", () => {
       rpcReady = true;
       discordConfig.reconnectAttempts = 0;
-      console.log("✅ Discord RPC ready - Rich Presence can now be displayed");
+      logger.info("✅ Discord RPC ready - Rich Presence can now be displayed");
       if (rpc && rpc.user) {
-        console.log(
+        logger.info(
           `✅ Connected as Discord user: ${rpc.user.username}#${rpc.user.discriminator}`
         );
       }
@@ -54,68 +60,97 @@ async function connectToDiscord() {
 
     rpc.on("connected", () => {
       rpcConnected = true;
-      console.log("✅ Connected to Discord RPC service");
+      logger.info("✅ Connected to Discord RPC service");
     });
 
     rpc.on("disconnected", () => {
-      console.log("❌ Disconnected from Discord RPC");
+      logger.warn("❌ Disconnected from Discord RPC");
       rpcConnected = false;
       rpcReady = false;
 
       // Attempt to reconnect with increasing delay
       discordConfig.reconnectAttempts++;
+
+      // Check if we've exceeded the maximum reconnect attempts
+      if (discordConfig.reconnectAttempts > maxReconnectAttempts) {
+        logger.warn(`Maximum reconnect attempts (${maxReconnectAttempts}) reached. Will try again in 60 seconds.`);
+        // Reset counter but keep trying with a longer delay
+        discordConfig.reconnectAttempts = 1;
+        reconnectTimeout = setTimeout(connectToDiscord, 60000);
+        return;
+      }
+
       const delay = Math.min(
         30000,
         Math.pow(2, Math.min(discordConfig.reconnectAttempts, 5)) * 1000
       );
-      console.log(
+      logger.info(
         `Will attempt to reconnect in ${delay / 1000} seconds (attempt ${
           discordConfig.reconnectAttempts
-        })`
+        } of ${maxReconnectAttempts})`
       );
       reconnectTimeout = setTimeout(connectToDiscord, delay);
     });
 
+    // Add error handler for the RPC client
+    rpc.on("error", (error) => {
+      logger.error("Discord RPC client error", { error });
+      // Don't disconnect here, let the disconnected event handle reconnection
+    });
+
     // Login to Discord RPC
-    console.log("Logging in with client ID:", discordConfig.clientId);
-    await rpc.login({ clientId: discordConfig.clientId });
+    logger.info("Logging in with client ID:", discordConfig.clientId);
+    await rpc.login({ clientId: discordConfig.clientId }).catch((error) => {
+      // This catch is to handle any promise rejection from login
+      // The outer try/catch will still handle this error
+      throw error;
+    });
   } catch (error: any) {
-    console.error("❌ Failed to connect to Discord:", error);
+    logger.error("❌ Failed to connect to Discord:", { error: error.message, stack: error.stack });
 
     // Provide more helpful error messages
     if (error.message === "RPC_CONNECTION_TIMEOUT") {
-      console.log("\n❌ Possible issues:");
-      console.log("1. Discord is running but RPC is disabled");
-      console.log("2. Discord IPC connection is blocked by a firewall");
-      console.log("3. The connection approach might need adjustment");
+      logger.info("\n❌ Possible issues:");
+      logger.info("1. Discord is running but RPC is disabled");
+      logger.info("2. Discord IPC connection is blocked by a firewall");
+      logger.info("3. The connection approach might need adjustment");
 
-      console.log("\n📋 Troubleshooting steps:");
-      console.log("1. Check if 'Game Activity' is enabled in Discord settings");
-      console.log(
+      logger.info("\n📋 Troubleshooting steps:");
+      logger.info("1. Check if 'Game Activity' is enabled in Discord settings");
+      logger.info(
         "   - Open Discord Settings > Activity Settings > Activity Status"
       );
-      console.log(
+      logger.info(
         "   - Make sure 'Display current activity as a status message' is ON"
       );
-      console.log(
+      logger.info(
         "2. Try restarting Discord completely (close from system tray)"
       );
-      console.log("3. Make sure no firewall is blocking the connection");
+      logger.info("3. Make sure no firewall is blocking the connection");
     }
 
     rpcConnected = false;
     rpcReady = false;
 
-    // Retry connection with increasing delay
+    // Check if we've exceeded the maximum reconnect attempts
     discordConfig.reconnectAttempts++;
+    if (discordConfig.reconnectAttempts > maxReconnectAttempts) {
+      logger.warn(`Maximum reconnect attempts (${maxReconnectAttempts}) reached. Will try again in 60 seconds.`);
+      // Reset counter but keep trying with a longer delay
+      discordConfig.reconnectAttempts = 1;
+      reconnectTimeout = setTimeout(connectToDiscord, 60000);
+      return;
+    }
+
+    // Retry connection with increasing delay
     const delay = Math.min(
       30000,
       Math.pow(2, Math.min(discordConfig.reconnectAttempts, 5)) * 1000
     );
-    console.log(
+    logger.info(
       `⏱️ Will attempt to reconnect in ${delay / 1000} seconds (attempt ${
         discordConfig.reconnectAttempts
-      })`
+      } of ${maxReconnectAttempts})`
     );
     reconnectTimeout = setTimeout(connectToDiscord, delay);
   }
@@ -123,10 +158,13 @@ async function connectToDiscord() {
 
 /**
  * Set Discord Rich Presence activity
+ *
+ * This function updates the Discord Rich Presence with information about the current website.
+ * It includes robust error handling and automatic reconnection if needed.
  */
 function setActivity(title: string, url: string) {
   if (!rpcConnected || !rpcReady || !rpc) {
-    console.warn("Discord RPC not ready, cannot set activity");
+    logger.warn("Discord RPC not ready, cannot set activity");
     return false;
   }
 
@@ -137,6 +175,7 @@ function setActivity(title: string, url: string) {
       domain = new URL(url).hostname;
     } catch (e) {
       domain = url;
+      logger.warn(`Failed to parse URL: ${url}`, { error: e });
     }
 
     const presenceConfig = config.getPresence();
@@ -159,20 +198,20 @@ function setActivity(title: string, url: string) {
     if (displayDomain.length < 2) {
       // For very short domains like "x.com", use a more descriptive name
       displayDomain = siteIcon?.displayName || `${domain} website`;
-      console.log(
+      logger.info(
         `Domain name too short, using extended name: ${displayDomain}`
       );
     }
 
     // Log which icon is being used
     if (siteIcon) {
-      console.log(`Using custom icon for ${domain}: ${siteIcon.iconKey}`);
+      logger.info(`Using custom icon for ${domain}: ${siteIcon.iconKey}`);
     } else {
-      console.log(`Using default web icon for ${domain}`);
+      logger.info(`Using default web icon for ${domain}`);
     }
 
-    // Set Rich Presence with customized format
-    rpc.setActivity({
+    // Prepare activity data
+    const activityData = {
       // Main title with customized prefix: "[prefix] - [page title]"
       details: `${userPrefs.prefixText} - ${
         title.length > 40 ? `${title.substring(0, 37)}...` : title
@@ -196,14 +235,54 @@ function setActivity(title: string, url: string) {
       buttons: presenceConfig.buttons,
 
       instance: false,
+    };
+
+    // Set Rich Presence with customized format
+    // Wrap in a promise with timeout to prevent hanging
+    const setActivityPromise = new Promise<boolean>((resolve, reject) => {
+      try {
+        if (!rpc) {
+          return reject(new Error("RPC client is null"));
+        }
+
+        // Set activity
+        rpc.setActivity(activityData);
+        resolve(true);
+      } catch (error) {
+        reject(error);
+      }
     });
 
-    return true;
+    // Add a timeout to prevent hanging
+    const timeoutPromise = new Promise<boolean>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error("setActivity timed out after 5 seconds"));
+      }, 5000);
+    });
+
+    // Use Promise.race to handle potential timeouts
+    return Promise.race([setActivityPromise, timeoutPromise])
+      .then(() => true)
+      .catch((error) => {
+        logger.error("Error setting activity:", { error: error.message, stack: error.stack });
+
+        // If we get an error here, the connection might be broken
+        if (rpcConnected) {
+          logger.warn("Discord connection appears broken, attempting to reconnect");
+          rpcConnected = false;
+          rpcReady = false;
+          // Try to reconnect
+          connectToDiscord();
+        }
+
+        return false;
+      });
   } catch (error: any) {
-    console.error("Error setting activity:", error);
+    logger.error("Error in setActivity:", { error: error.message, stack: error.stack });
 
     // If we get an error here, the connection might be broken
     if (rpcConnected) {
+      logger.warn("Discord connection appears broken, attempting to reconnect");
       rpcConnected = false;
       rpcReady = false;
       // Try to reconnect
@@ -216,22 +295,64 @@ function setActivity(title: string, url: string) {
 
 /**
  * Clear Discord Rich Presence activity
+ *
+ * This function clears the current Discord Rich Presence.
+ * It includes robust error handling and automatic reconnection if needed.
  */
 function clearActivity() {
   if (!rpcConnected || !rpcReady || !rpc) {
-    console.warn("Discord RPC not ready, cannot clear activity");
+    logger.warn("Discord RPC not ready, cannot clear activity");
     return false;
   }
 
   try {
-    rpc.clearActivity();
-    // Reset the timestamp when clearing activity
-    initialTimestamp = null;
-    return true;
+    // Wrap in a promise with timeout to prevent hanging
+    const clearActivityPromise = new Promise<boolean>((resolve, reject) => {
+      try {
+        if (!rpc) {
+          return reject(new Error("RPC client is null"));
+        }
+
+        // Clear activity
+        rpc.clearActivity();
+        // Reset the timestamp when clearing activity
+        initialTimestamp = null;
+        resolve(true);
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    // Add a timeout to prevent hanging
+    const timeoutPromise = new Promise<boolean>((_, reject) => {
+      setTimeout(() => {
+        reject(new Error("clearActivity timed out after 5 seconds"));
+      }, 5000);
+    });
+
+    // Use Promise.race to handle potential timeouts
+    return Promise.race([clearActivityPromise, timeoutPromise])
+      .then(() => {
+        logger.info("Successfully cleared Discord presence");
+        return true;
+      })
+      .catch((error) => {
+        logger.error("Error clearing activity:", { error: error.message, stack: error.stack });
+
+        // If we get an error here, the connection might be broken
+        logger.warn("Discord connection appears broken, attempting to reconnect");
+        rpcConnected = false;
+        rpcReady = false;
+        // Try to reconnect
+        connectToDiscord();
+
+        return false;
+      });
   } catch (error: any) {
-    console.error("Error clearing activity:", error);
+    logger.error("Error in clearActivity:", { error: error.message, stack: error.stack });
 
     // If we get an error here, the connection might be broken
+    logger.warn("Discord connection appears broken, attempting to reconnect");
     rpcConnected = false;
     rpcReady = false;
     // Try to reconnect

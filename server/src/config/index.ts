@@ -24,7 +24,7 @@ const defaultConfig = {
     buttons: [
       {
         label: "GitHub Repository",
-        url: "https://github.com/utkarshthedev/webpresence",
+        url: "https://github.com/utkarshthedev/WebPresence",
       },
       {
         label: "Follow on Twitter",

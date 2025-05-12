@@ -8,7 +8,10 @@ let reconnectAttempts = 0;
 let reconnectInterval = null;
 let heartbeatInterval = null;
 const HEARTBEAT_INTERVAL = 45000; // 45 seconds heartbeat
+const MAX_RECONNECT_ATTEMPTS = 20; // Maximum number of reconnection attempts before slowing down
+const MAX_RECONNECT_DELAY = 60000; // Maximum delay between reconnection attempts (1 minute)
 let lastAlwaysEnabledSite = null; // Track the last always-enabled site
+let lastError = null; // Track the last error for debugging
 
 // User preferences
 let userPreferences = {
@@ -38,82 +41,191 @@ function initialize() {
   browser.tabs.onUpdated.addListener(handleTabUpdate);
 }
 
-// Connect to the WebSocket server
+// Connect to the WebSocket server with enhanced error handling
 function connectWebSocket() {
+  // Prevent multiple connection attempts
   if (
     websocket &&
     (websocket.readyState === WebSocket.OPEN ||
       websocket.readyState === WebSocket.CONNECTING)
   ) {
+    console.log(
+      "WebSocket already connected or connecting, skipping connection attempt"
+    );
     return;
   }
 
-  websocket = new WebSocket(SERVER_URL);
+  try {
+    console.log(`Connecting to WebSocket server at ${SERVER_URL}...`);
+    websocket = new WebSocket(SERVER_URL);
 
-  websocket.onopen = () => {
-    console.log("Connected to WebSocket server");
-    connected = true;
-    reconnectAttempts = 0;
+    // Connection successful
+    websocket.onopen = () => {
+      console.log("✅ Connected to WebSocket server");
+      connected = true;
+      reconnectAttempts = 0;
+      lastError = null;
 
-    if (reconnectInterval) {
-      clearInterval(reconnectInterval);
-      reconnectInterval = null;
-    }
+      // Clear reconnect interval if it exists
+      if (reconnectInterval) {
+        clearInterval(reconnectInterval);
+        reconnectInterval = null;
+      }
 
-    // Start heartbeat
-    startHeartbeat();
+      // Start heartbeat mechanism
+      startHeartbeat();
 
-    // Send current tab information if enabled
-    if (enabled) {
-      sendCurrentTabInfo();
-    }
-  };
-
-  websocket.onmessage = (event) => {
-    try {
-      const message = JSON.parse(event.data);
-
-      if (message.type === "state") {
-        // Update enabled state if it's different from server
-        if (message.enabled !== enabled) {
-          enabled = message.enabled;
-          browser.storage.local.set({ enabled });
-        }
-
-        // Update preferences if provided
-        if (message.preferences) {
-          userPreferences = message.preferences;
-          browser.storage.local.set({ userPreferences });
+      // Send current tab information if enabled
+      if (enabled) {
+        try {
+          sendCurrentTabInfo();
+        } catch (error) {
+          console.error("Error sending initial tab info:", error);
+          // Non-critical error, continue execution
         }
       }
-    } catch (error) {
-      console.log("Unable to parse WebSocket message:", error);
-    }
-  };
+    };
 
-  websocket.onclose = () => {
-    console.log("Disconnected from WebSocket server");
+    // Handle incoming messages with robust error handling
+    websocket.onmessage = (event) => {
+      try {
+        // Parse message
+        const message = JSON.parse(event.data);
+
+        // Process message based on type
+        if (message.type === "state") {
+          // Update enabled state if it's different from server
+          if (message.enabled !== enabled) {
+            enabled = message.enabled;
+            try {
+              browser.storage.local.set({ enabled }).catch((storageError) => {
+                console.warn(
+                  "Failed to save enabled state to storage:",
+                  storageError
+                );
+              });
+            } catch (storageError) {
+              console.warn(
+                "Failed to save enabled state to storage:",
+                storageError
+              );
+              // Non-critical error, continue execution
+            }
+          }
+
+          // Update preferences if provided
+          if (message.preferences) {
+            userPreferences = message.preferences;
+            try {
+              browser.storage.local
+                .set({ userPreferences })
+                .catch((storageError) => {
+                  console.warn(
+                    "Failed to save preferences to storage:",
+                    storageError
+                  );
+                });
+            } catch (storageError) {
+              console.warn(
+                "Failed to save preferences to storage:",
+                storageError
+              );
+              // Non-critical error, continue execution
+            }
+          }
+        } else if (message.type === "pong") {
+          // Heartbeat response received
+          console.log("Heartbeat acknowledged by server");
+        } else {
+          console.log(`Received message of type: ${message.type}`);
+        }
+      } catch (error) {
+        console.warn("Unable to parse WebSocket message:", error);
+        console.log(
+          "Raw message:",
+          event.data ? event.data.substring(0, 100) : "empty"
+        );
+        // Non-critical error, continue execution
+      }
+    };
+
+    // Handle connection close with reconnection logic
+    websocket.onclose = (event) => {
+      const reason = event.reason || "No reason provided";
+      const code = event.code || "No code provided";
+      console.log(
+        `Disconnected from WebSocket server (Code: ${code}, Reason: ${reason})`
+      );
+      connected = false;
+
+      // Stop heartbeat
+      stopHeartbeat();
+
+      // Implement reconnection with exponential backoff
+      if (!reconnectInterval) {
+        reconnectInterval = setInterval(() => {
+          // Increment attempt counter
+          reconnectAttempts++;
+
+          // Calculate delay with capped exponential backoff
+          let delay;
+          if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
+            // After max attempts, use a consistent longer delay
+            delay = MAX_RECONNECT_DELAY;
+            console.log(
+              `Maximum reconnection attempts (${MAX_RECONNECT_ATTEMPTS}) exceeded, using consistent delay`
+            );
+          } else {
+            // Exponential backoff with maximum cap
+            delay = Math.min(
+              MAX_RECONNECT_DELAY,
+              Math.pow(2, Math.min(reconnectAttempts, 10)) * 1000
+            );
+          }
+
+          console.log(
+            `Attempting to reconnect (attempt ${reconnectAttempts}) in ${
+              delay / 1000
+            } seconds...`
+          );
+
+          // Attempt reconnection
+          try {
+            connectWebSocket();
+          } catch (reconnectError) {
+            console.error("Error during reconnection attempt:", reconnectError);
+            // Continue with next attempt despite errors
+          }
+        }, Math.min(MAX_RECONNECT_DELAY, Math.pow(2, Math.min(reconnectAttempts, 10)) * 1000));
+      }
+    };
+
+    // Handle connection errors
+    websocket.onerror = (error) => {
+      lastError = error;
+      console.error("WebSocket connection error:", error);
+      // The onclose handler will be called after this and handle reconnection
+    };
+  } catch (error) {
+    console.error("Failed to create WebSocket connection:", error);
     connected = false;
 
-    // Stop heartbeat
-    stopHeartbeat();
-
-    // Attempt to reconnect with exponential backoff
+    // Set up reconnection if not already in progress
     if (!reconnectInterval) {
       reconnectInterval = setInterval(() => {
         reconnectAttempts++;
-        const maxDelay = Math.min(30000, Math.pow(2, reconnectAttempts) * 1000);
         console.log(
-          `Attempting to reconnect (attempt ${reconnectAttempts})...`
+          `Attempting to reconnect after error (attempt ${reconnectAttempts})...`
         );
-        connectWebSocket();
-      }, Math.min(30000, Math.pow(2, reconnectAttempts) * 1000));
+        try {
+          connectWebSocket();
+        } catch (reconnectError) {
+          console.error("Error during reconnection attempt:", reconnectError);
+          // Continue with next attempt despite errors
+        }
+      }, Math.min(MAX_RECONNECT_DELAY, Math.pow(2, Math.min(reconnectAttempts, 10)) * 1000));
     }
-  };
-
-  websocket.onerror = (error) => {
-    console.warn("WebSocket connection issue:", error);
-  };
+  }
 }
 
 // Toggle presence state
@@ -157,99 +269,172 @@ function handleTabUpdate(tabId, changeInfo, tab) {
   }
 }
 
-// Send current tab information to the server
+// Send current tab information to the server with enhanced error handling
 function sendCurrentTabInfo() {
-  if (!currentTabId) {
-    browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
-      if (tabs.length === 0) return;
-      currentTabId = tabs[0].id;
+  // Don't attempt to send if not connected
+  if (!connected || !websocket || websocket.readyState !== WebSocket.OPEN) {
+    console.log("Not connected to server, skipping tab info update");
+    return;
+  }
+
+  try {
+    // Get current tab ID if not already set
+    if (!currentTabId) {
+      browser.tabs
+        .query({ active: true, currentWindow: true })
+        .then((tabs) => {
+          if (tabs.length === 0) {
+            console.log("No active tabs found");
+            return;
+          }
+          currentTabId = tabs[0].id;
+          getAndSendTabInfo(currentTabId);
+        })
+        .catch((queryError) => {
+          console.error("Error querying tabs:", queryError);
+        });
+    } else {
       getAndSendTabInfo(currentTabId);
-    });
-  } else {
-    getAndSendTabInfo(currentTabId);
+    }
+  } catch (error) {
+    console.error("Error in sendCurrentTabInfo:", error);
+    // Non-critical error, continue execution
   }
 }
 
+// Get tab info and send presence update with enhanced error handling
 function getAndSendTabInfo(tabId) {
+  if (!connected || !websocket || websocket.readyState !== WebSocket.OPEN) {
+    console.log("Not connected to server, skipping tab info update");
+    return;
+  }
+
   browser.tabs
     .get(tabId)
     .then((tab) => {
-      // Skip sending for about:, moz-extension://, etc. urls
-      if (!tab.url.startsWith("http")) return;
-
-      // Extract domain from URL for client-side checks
-      let domain = "";
       try {
-        domain = new URL(tab.url).hostname;
-      } catch (e) {
-        domain = tab.url;
-      }
-
-      // Check if domain is in disabled sites list (client-side check)
-      const isDisabled = userPreferences.disabledSites.some((site) =>
-        domain.includes(site)
-      );
-
-      // Check if domain is in always enabled sites list (client-side check)
-      const isAlwaysEnabled = userPreferences.alwaysEnabledSites.some((site) =>
-        domain.includes(site)
-      );
-
-      // Skip if disabled and not always enabled (client-side optimization)
-      if (isDisabled && !isAlwaysEnabled) {
-        console.log(`Skipping presence for disabled site: ${domain}`);
-
-        // If we were previously showing an always-enabled site, clear it
-        if (
-          lastAlwaysEnabledSite &&
-          websocket &&
-          websocket.readyState === WebSocket.OPEN
-        ) {
-          websocket.send(JSON.stringify({ type: "clearPresence" }));
-          lastAlwaysEnabledSite = null;
+        // Skip sending for about:, moz-extension://, etc. urls
+        if (!tab.url || !tab.url.startsWith("http")) {
+          console.log("Skipping non-http URL:", tab.url);
+          return;
         }
 
-        return;
-      }
+        // Extract domain from URL for client-side checks with error handling
+        let domain = "";
+        try {
+          domain = new URL(tab.url).hostname;
+        } catch (urlError) {
+          console.warn("Error parsing URL:", urlError);
+          domain = tab.url;
+        }
 
-      // Handle presence disabled case
-      if (!enabled) {
-        // If site is not always enabled, skip it
-        if (!isAlwaysEnabled) {
+        // Check if domain is in disabled sites list (client-side check)
+        const isDisabled = userPreferences.disabledSites.some((site) =>
+          domain.includes(site)
+        );
+
+        // Check if domain is in always enabled sites list (client-side check)
+        const isAlwaysEnabled = userPreferences.alwaysEnabledSites.some(
+          (site) => domain.includes(site)
+        );
+
+        // Skip if disabled and not always enabled (client-side optimization)
+        if (isDisabled && !isAlwaysEnabled) {
+          console.log(`Skipping presence for disabled site: ${domain}`);
+
           // If we were previously showing an always-enabled site, clear it
           if (
             lastAlwaysEnabledSite &&
-            websocket &&
             websocket.readyState === WebSocket.OPEN
           ) {
-            websocket.send(JSON.stringify({ type: "clearPresence" }));
-            lastAlwaysEnabledSite = null;
+            try {
+              websocket.send(JSON.stringify({ type: "clearPresence" }));
+              lastAlwaysEnabledSite = null;
+            } catch (sendError) {
+              console.error("Error sending clearPresence message:", sendError);
+            }
           }
 
           return;
         }
 
-        // Site is always enabled, track it
-        lastAlwaysEnabledSite = domain;
-      } else {
-        // Presence is enabled, reset tracking
-        lastAlwaysEnabledSite = null;
-      }
+        // Handle presence disabled case
+        if (!enabled) {
+          // If site is not always enabled, skip it
+          if (!isAlwaysEnabled) {
+            // If we were previously showing an always-enabled site, clear it
+            if (
+              lastAlwaysEnabledSite &&
+              websocket.readyState === WebSocket.OPEN
+            ) {
+              try {
+                websocket.send(JSON.stringify({ type: "clearPresence" }));
+                lastAlwaysEnabledSite = null;
+              } catch (sendError) {
+                console.error(
+                  "Error sending clearPresence message:",
+                  sendError
+                );
+              }
+            }
 
-      if (tab && websocket && websocket.readyState === WebSocket.OPEN) {
-        websocket.send(
-          JSON.stringify({
-            type: "presence",
-            title: tab.title,
-            url: tab.url,
-            faviconUrl: tab.favIconUrl,
-            preferences: userPreferences, // Send user preferences with presence update
-          })
-        );
+            return;
+          }
+
+          // Site is always enabled, track it
+          lastAlwaysEnabledSite = domain;
+          console.log(`Always-enabled site detected: ${domain}`);
+        } else {
+          // Presence is enabled, reset tracking
+          lastAlwaysEnabledSite = null;
+        }
+
+        // Send presence update with error handling
+        if (tab && websocket.readyState === WebSocket.OPEN) {
+          try {
+            const message = {
+              type: "presence",
+              title: tab.title || "Unknown",
+              url: tab.url,
+              faviconUrl: tab.favIconUrl || "",
+              preferences: userPreferences, // Send user preferences with presence update
+            };
+
+            websocket.send(JSON.stringify(message));
+            console.log(`Sent presence update for: ${domain}`);
+          } catch (sendError) {
+            console.error("Error sending presence update:", sendError);
+
+            // If there's a WebSocket error, it might need reconnection
+            if (sendError.name === "InvalidStateError") {
+              console.log(
+                "WebSocket appears to be in an invalid state, reconnecting..."
+              );
+              connected = false;
+
+              // Force reconnection
+              try {
+                websocket.close();
+              } catch (closeError) {
+                console.warn("Error closing broken WebSocket:", closeError);
+              }
+
+              // Attempt to reconnect
+              setTimeout(connectWebSocket, 1000);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error processing tab info:", error);
+        // Non-critical error, continue execution
       }
     })
     .catch((error) => {
-      console.log("Tab info not available:", error);
+      console.error("Tab info not available:", error);
+      // Tab might have been closed or doesn't exist
+      if (error.message && error.message.includes("Invalid tab ID")) {
+        currentTabId = null;
+      }
     });
 }
 
@@ -443,18 +628,58 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Start heartbeat mechanism
+// Start heartbeat mechanism with enhanced error handling
 function startHeartbeat() {
   // Clear any existing heartbeat
   stopHeartbeat();
 
-  // Set up new heartbeat interval
+  // Set up new heartbeat interval with error handling
   heartbeatInterval = setInterval(() => {
     if (websocket && websocket.readyState === WebSocket.OPEN) {
-      console.log("Sending heartbeat to server");
-      websocket.send(JSON.stringify({ type: "ping" }));
+      try {
+        console.log("Sending heartbeat to server");
+        websocket.send(JSON.stringify({ type: "ping" }));
+      } catch (error) {
+        console.error("Error sending heartbeat:", error);
+
+        // If there's a WebSocket error, it might need reconnection
+        if (error.name === "InvalidStateError") {
+          console.log(
+            "WebSocket appears to be in an invalid state during heartbeat, reconnecting..."
+          );
+          connected = false;
+
+          // Force reconnection
+          try {
+            websocket.close();
+          } catch (closeError) {
+            console.warn("Error closing broken WebSocket:", closeError);
+          }
+
+          // Stop heartbeat as we're reconnecting
+          stopHeartbeat();
+
+          // Attempt to reconnect
+          setTimeout(connectWebSocket, 1000);
+        }
+      }
+    } else if (websocket && websocket.readyState === WebSocket.CLOSED) {
+      console.log(
+        "WebSocket closed during heartbeat interval, attempting to reconnect"
+      );
+      connected = false;
+
+      // Stop heartbeat as we're reconnecting
+      stopHeartbeat();
+
+      // Attempt to reconnect
+      setTimeout(connectWebSocket, 1000);
     }
   }, HEARTBEAT_INTERVAL);
+
+  console.log(
+    `Heartbeat mechanism started (interval: ${HEARTBEAT_INTERVAL}ms)`
+  );
 }
 
 // Stop heartbeat mechanism
@@ -462,6 +687,7 @@ function stopHeartbeat() {
   if (heartbeatInterval) {
     clearInterval(heartbeatInterval);
     heartbeatInterval = null;
+    console.log("Heartbeat mechanism stopped");
   }
 }
 

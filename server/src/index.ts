@@ -5,13 +5,25 @@ import { discord } from "./services/discord.js";
 import { initWebSocketServer } from "./services/websocket.js";
 import { config } from "./config/index.js";
 import { initRoutes } from "./routes/index.js";
+import { logger } from "./utils/logger.js";
 
 /**
  * Web Presence Server
- * 
+ *
  * This server provides Discord Rich Presence for websites
  * by connecting to a browser extension via WebSocket.
  */
+
+// Global error handlers to prevent crashes
+process.on('uncaughtException', (error) => {
+  logger.error(`Uncaught Exception: ${error.message}`, { error: error.stack });
+  // Keep the process running despite the error
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error(`Unhandled Promise Rejection at: ${promise}\nReason: ${reason}`);
+  // Keep the process running despite the rejection
+});
 
 // Initialize Express app
 const app = express();
