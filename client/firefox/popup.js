@@ -141,13 +141,13 @@ async function updatePreviewFromCurrentTab() {
           tab.title.length > 25 ? tab.title.substring(0, 22) + "..." : tab.title
         }`;
 
-        // Extract domain and add the credit (changed to "by utkarsh tiwari")
+        // Extract domain
         const url = new URL(tab.url);
-        previewUrlEl.textContent = `${url.hostname} - by utkarsh tiwari`;
+        previewUrlEl.textContent = `${url.hostname}`;
       } else {
         const prefix = userPreferences.prefixText || "Viewing";
         previewTitleEl.textContent = `${prefix} - Not available`;
-        previewUrlEl.textContent = "Not available - by utkarsh tiwari";
+        previewUrlEl.textContent = "Not available";
       }
     }
   } catch (error) {

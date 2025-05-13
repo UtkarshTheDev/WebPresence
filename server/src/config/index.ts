@@ -20,7 +20,7 @@ const defaultConfig = {
   presence: {
     enabled: true,
     defaultPrefix: "Viewing", // Default prefix for details text
-    creditText: "by utkarsh tiwari", // Credit text to show in state
+    creditText: "by Utkarsh", // Credit text to show in state
     buttons: [
       {
         label: "GitHub Repository",
