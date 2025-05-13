@@ -2,7 +2,7 @@
 
 All notable changes to the WebPresence package will be documented in this file.
 
-## [Unreleased]
+## [2.0.0] - 2025-04-13
 
 ### Added
 
