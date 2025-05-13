@@ -497,10 +497,19 @@ menuOverlay.addEventListener("click", closeMenu);
 
 // Navigation event listeners
 menuItems.forEach((item) => {
-  item.addEventListener("click", (e) => {
-    e.preventDefault();
-    navigateToPage(item.dataset.page);
-  });
+  if (item.dataset.page) {
+    item.addEventListener("click", (e) => {
+      e.preventDefault();
+      navigateToPage(item.dataset.page);
+    });
+  }
+});
+
+// Setup guide link
+document.getElementById("open-setup-guide").addEventListener("click", (e) => {
+  e.preventDefault();
+  chrome.tabs.create({ url: "welcome.html" });
+  window.close();
 });
 
 // Initialize popup when DOM is loaded
