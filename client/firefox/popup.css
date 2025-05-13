@@ -13,6 +13,8 @@
   --border-radius: 10px;
   --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   --transition: all 0.2s ease;
+  --menu-width: 260px;
+  --menu-transition: 0.3s ease;
 }
 
 * {
@@ -29,6 +31,7 @@ body {
   height: 520px;
   overflow-x: hidden;
   overflow-y: auto;
+  position: relative;
 }
 
 .container {
@@ -37,6 +40,8 @@ body {
   padding: 16px;
   gap: 12px;
   height: 100%;
+  transition: transform var(--menu-transition);
+  overflow-y: auto;
 }
 
 /* Card Styles */
@@ -47,6 +52,7 @@ body {
   box-shadow: var(--box-shadow);
   transition: var(--transition);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 12px;
 }
 
 .card:hover {
@@ -74,6 +80,7 @@ h1 {
   font-weight: 700;
   color: var(--primary-color);
   letter-spacing: -0.5px;
+  margin-left: 10px;
 }
 
 h2 {
@@ -84,6 +91,176 @@ h2 {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-color);
+  margin-bottom: 10px;
+  margin-top: 16px;
+}
+
+.mt-4 {
+  margin-top: 20px;
+}
+
+/* Menu Toggle Button */
+.menu-toggle {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-toggle:hover {
+  background-color: rgba(88, 101, 242, 0.1);
+  transform: scale(1.05);
+}
+
+/* Side Menu */
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--menu-transition), visibility var(--menu-transition);
+}
+
+.menu-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: -280px;
+  width: var(--menu-width);
+  height: 100%;
+  background-color: var(--card-bg);
+  z-index: 20;
+  transition: left var(--menu-transition);
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+}
+
+.side-menu.active {
+  left: 0;
+}
+
+.menu-header {
+  display: flex;
+  align-items: center;
+  padding: 0 20px 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 16px;
+}
+
+.menu-logo {
+  width: 32px;
+  height: 32px;
+  margin-right: 12px;
+}
+
+.menu-header h2 {
+  font-size: 18px;
+  margin-bottom: 0;
+  color: var(--primary-color);
+}
+
+.menu-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 8px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  transition: var(--transition);
+}
+
+.menu-item i {
+  font-size: 16px;
+  width: 24px;
+  text-align: center;
+  margin-right: 12px;
+}
+
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-color);
+}
+
+.menu-item.active {
+  background-color: rgba(88, 101, 242, 0.15);
+  color: var(--primary-color);
+}
+
+.menu-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: center;
+}
+
+.menu-footer p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.menu-social-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.menu-social-links a {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-decoration: none;
+  transition: var(--transition);
+  padding: 6px 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.05);
+  width: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.menu-social-links a i {
+  font-size: 14px;
+  color: var(--primary-color);
+}
+
+.menu-social-links a:hover {
+  color: var(--primary-color);
+  background-color: rgba(88, 101, 242, 0.1);
 }
 
 /* Status Indicators */
@@ -610,18 +787,49 @@ input:checked + .toggle-slider:before {
   color: var(--success-color);
 }
 
-/* Footer */
-.footer {
-  text-align: center;
-  margin-top: auto;
-  padding: 12px 0 16px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
+/* Pages Container */
+.pages-container {
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-bottom: 20px;
 }
 
-.footer p {
+.page {
+  display: none;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page.active {
+  display: block;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.page-header {
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Help Text */
+.help-text {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.help-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: center;
+}
+
+.help-footer p {
   font-size: 13px;
   color: var(--text-muted);
   display: flex;
@@ -630,30 +838,60 @@ input:checked + .toggle-slider:before {
   gap: 6px;
 }
 
+/* Button Group */
+.button-group {
+  display: flex;
+  gap: 10px;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 10px 0;
+  margin-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  width: 100%;
+  position: relative;
+  bottom: 0;
+  left: 0;
+  background-color: var(--background-color);
+  z-index: 1;
+}
+
+.footer p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
 .author-name {
   color: var(--primary-color);
   font-weight: 600;
 }
 
-.footer i.fa-heart {
-  color: var(--error-color);
-}
-
 .social-links {
   display: flex;
-  gap: 12px;
-  margin-top: 2px;
+  justify-content: center;
+  gap: 16px;
 }
 
 .social-links a {
   color: var(--text-muted);
-  font-size: 16px;
+  font-size: 12px;
+  text-decoration: none;
   transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.social-links a i {
+  font-size: 14px;
+  color: var(--primary-color);
 }
 
 .social-links a:hover {
   color: var(--primary-color);
-  transform: translateY(-2px);
 }
 
 /* Animations */

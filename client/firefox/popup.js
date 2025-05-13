@@ -31,6 +31,13 @@ const addCurrentToAlwaysEnabledBtn = document.getElementById(
   "add-current-to-always-enabled"
 );
 
+// Menu and navigation elements
+const menuToggleBtn = document.getElementById("menu-toggle");
+const menuOverlay = document.getElementById("menu-overlay");
+const sideMenu = document.getElementById("side-menu");
+const menuItems = document.querySelectorAll(".menu-item");
+const pages = document.querySelectorAll(".page");
+
 // State
 let isEnabled = true;
 let isConnected = false;
@@ -424,6 +431,43 @@ async function toggleContinuousTimer() {
   }
 }
 
+// Toggle menu
+function toggleMenu() {
+  sideMenu.classList.toggle("active");
+  menuOverlay.classList.toggle("active");
+}
+
+// Close menu
+function closeMenu() {
+  sideMenu.classList.remove("active");
+  menuOverlay.classList.remove("active");
+}
+
+// Navigate to page
+function navigateToPage(pageId) {
+  // Hide all pages
+  pages.forEach((page) => {
+    page.classList.remove("active");
+  });
+
+  // Show selected page
+  const selectedPage = document.getElementById(`${pageId}-page`);
+  if (selectedPage) {
+    selectedPage.classList.add("active");
+  }
+
+  // Update menu items
+  menuItems.forEach((item) => {
+    item.classList.remove("active");
+    if (item.dataset.page === pageId) {
+      item.classList.add("active");
+    }
+  });
+
+  // Close menu after navigation on mobile
+  closeMenu();
+}
+
 // Add event listeners
 toggleEl.addEventListener("change", togglePresence);
 continuousTimerToggleEl.addEventListener("change", toggleContinuousTimer);
@@ -456,5 +500,22 @@ alwaysEnabledSiteInputEl.addEventListener("keyup", (e) => {
   }
 });
 
+// Menu event listeners
+menuToggleBtn.addEventListener("click", toggleMenu);
+menuOverlay.addEventListener("click", closeMenu);
+
+// Navigation event listeners
+menuItems.forEach((item) => {
+  item.addEventListener("click", (e) => {
+    e.preventDefault();
+    navigateToPage(item.dataset.page);
+  });
+});
+
 // Initialize popup when DOM is loaded
-document.addEventListener("DOMContentLoaded", initializePopup);
+document.addEventListener("DOMContentLoaded", () => {
+  initializePopup();
+
+  // Set initial page
+  navigateToPage("home");
+});

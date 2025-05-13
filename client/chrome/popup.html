@@ -15,209 +15,317 @@
     />
   </head>
   <body>
+    <!-- Hamburger Menu -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+    <div class="side-menu" id="side-menu">
+      <div class="menu-header">
+        <img src="icons/icon48.png" alt="Web Presence Logo" class="menu-logo" />
+        <h2>Web Presence</h2>
+      </div>
+
+      <nav class="menu-nav">
+        <a href="#" class="menu-item active" data-page="home">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <a href="#" class="menu-item" data-page="customize">
+          <i class="fas fa-sliders-h"></i>
+          <span>Customize</span>
+        </a>
+        <a href="#" class="menu-item" data-page="disabled-sites">
+          <i class="fas fa-eye-slash"></i>
+          <span>Disabled Sites</span>
+        </a>
+        <a href="#" class="menu-item" data-page="always-enabled-sites">
+          <i class="fas fa-star"></i>
+          <span>Always Enabled Sites</span>
+        </a>
+        <a href="#" class="menu-item" data-page="help">
+          <i class="fas fa-question-circle"></i>
+          <span>Help</span>
+        </a>
+      </nav>
+
+      <div class="menu-footer">
+        <p>by <span class="author-name">Utkarsh Tiwari</span></p>
+        <div class="menu-social-links">
+          <a
+            href="https://github.com/utkarshthedev/webpresence"
+            target="_blank"
+            title="Star on GitHub"
+          >
+            <i class="fab fa-github"></i> Star on GitHub
+          </a>
+          <a
+            href="https://twitter.com/utkarshthedev"
+            target="_blank"
+            title="Follow on Twitter"
+          >
+            <i class="fab fa-twitter"></i> Follow on X
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
     <div class="container">
       <div class="header">
-        <img src="icons/icon48.png" alt="Web Presence Logo" class="logo" />
+        <button id="menu-toggle" class="menu-toggle">
+          <i class="fas fa-bars"></i>
+        </button>
         <h1>Web Presence</h1>
       </div>
 
-      <div class="card status-card">
-        <div class="status-container">
-          <div class="status-item">
-            <i class="fab fa-discord status-icon"></i>
-            <span class="status-label">Discord</span>
-            <span class="status-indicator" id="discord-status"></span>
-          </div>
-          <div class="status-item">
-            <i class="fas fa-server status-icon"></i>
-            <span class="status-label">Server</span>
-            <span class="status-indicator" id="server-status"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card toggle-card">
-        <div class="toggle-container">
-          <div class="toggle-info">
-            <label for="presence-toggle" class="toggle-label"
-              >Rich Presence</label
-            >
-            <span class="toggle-description"
-              >Show your browsing activity on Discord</span
-            >
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="presence-toggle" />
-            <span class="slider"></span>
-          </label>
-        </div>
-      </div>
-
-      <div class="card customize-card">
-        <h2><i class="fas fa-sliders-h"></i> Customize Presence</h2>
-        <div class="customize-form">
-          <div class="form-group">
-            <label for="prefix-text">Prefix Text:</label>
-            <input
-              type="text"
-              id="prefix-text"
-              placeholder="Viewing"
-              maxlength="20"
-            />
-            <span class="form-hint">Appears before the page title</span>
-          </div>
-
-          <div class="form-group toggle-group">
-            <div class="toggle-text">
-              <label for="continuous-timer-toggle">Continuous Timer</label>
-              <span class="form-hint"
-                >Keep timer running when switching tabs</span
-              >
+      <!-- Pages Container -->
+      <div class="pages-container">
+        <!-- Home Page -->
+        <div class="page active" id="home-page">
+          <div class="card status-card">
+            <div class="status-container">
+              <div class="status-item">
+                <i class="fab fa-discord status-icon"></i>
+                <span class="status-label">Discord</span>
+                <span class="status-indicator" id="discord-status"></span>
+              </div>
+              <div class="status-item">
+                <i class="fas fa-server status-icon"></i>
+                <span class="status-label">Server</span>
+                <span class="status-indicator" id="server-status"></span>
+              </div>
             </div>
-            <div class="toggle-wrapper">
+          </div>
+
+          <div class="card toggle-card">
+            <div class="toggle-container">
+              <div class="toggle-info">
+                <label for="presence-toggle" class="toggle-label"
+                  >Rich Presence</label
+                >
+                <span class="toggle-description"
+                  >Show your browsing activity on Discord</span
+                >
+              </div>
               <label class="toggle">
-                <input type="checkbox" id="continuous-timer-toggle" checked />
-                <span class="toggle-slider"></span>
+                <input type="checkbox" id="presence-toggle" />
+                <span class="slider"></span>
               </label>
             </div>
           </div>
 
-          <button id="save-preferences" class="save-button">
-            <i class="fas fa-save"></i> Save
-          </button>
-          <button id="reset-preferences" class="reset-button">
-            <i class="fas fa-undo"></i> Reset
-          </button>
+          <div class="card preview-card" id="preview">
+            <h2><i class="fas fa-eye"></i> Live Preview</h2>
+            <div class="discord-preview">
+              <div class="discord-avatar">
+                <div class="discord-avatar-inner">
+                  <i class="fab fa-discord discord-logo"></i>
+                </div>
+              </div>
+              <div class="discord-content">
+                <div class="discord-game">Web Browsing</div>
+                <div class="discord-details" id="preview-title">
+                  Viewing - Loading...
+                </div>
+                <div class="discord-state" id="preview-url">
+                  example.com - made by utkarsh tiwari
+                </div>
+                <div class="discord-time">
+                  <i class="far fa-clock"></i> 00:00 elapsed
+                </div>
+                <div class="discord-buttons">
+                  <div class="discord-button">GitHub Repository</div>
+                  <div class="discord-button">Follow on Twitter</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div class="card site-lists-card">
-        <h2><i class="fas fa-globe"></i> Site Preferences</h2>
-
-        <div class="site-list-section">
-          <h3><i class="fas fa-eye-slash"></i> Disabled Sites</h3>
-          <p class="section-description">Never show presence for these sites</p>
-
-          <div class="site-list" id="disabled-sites-list">
-            <!-- Sites will be added here dynamically -->
-            <div class="empty-list-message">No sites added</div>
+        <!-- Customize Page -->
+        <div class="page" id="customize-page">
+          <div class="page-header">
+            <h2><i class="fas fa-sliders-h"></i> Customize Presence</h2>
           </div>
 
-          <div class="site-actions">
-            <button id="add-current-to-disabled" class="action-button">
-              <i class="fas fa-plus"></i> Disable Current Site
-            </button>
-            <div class="site-input-group">
-              <input
-                type="text"
-                id="disabled-site-input"
-                placeholder="e.g., youtube.com"
-              />
-              <button id="add-disabled-site" class="action-button">
-                <i class="fas fa-plus"></i> Add
+          <div class="card customize-card">
+            <div class="customize-form">
+              <div class="form-group">
+                <label for="prefix-text">Prefix Text:</label>
+                <input
+                  type="text"
+                  id="prefix-text"
+                  placeholder="Viewing"
+                  maxlength="20"
+                />
+                <span class="form-hint">Appears before the page title</span>
+              </div>
+
+              <div class="form-group toggle-group">
+                <div class="toggle-text">
+                  <label for="continuous-timer-toggle">Continuous Timer</label>
+                  <span class="form-hint"
+                    >Keep timer running when switching tabs</span
+                  >
+                </div>
+                <div class="toggle-wrapper">
+                  <label class="toggle">
+                    <input
+                      type="checkbox"
+                      id="continuous-timer-toggle"
+                      checked
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="button-group">
+                <button id="save-preferences" class="save-button">
+                  <i class="fas fa-save"></i> Save
+                </button>
+                <button id="reset-preferences" class="reset-button">
+                  <i class="fas fa-undo"></i> Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Disabled Sites Page -->
+        <div class="page" id="disabled-sites-page">
+          <div class="page-header">
+            <h2><i class="fas fa-eye-slash"></i> Disabled Sites</h2>
+          </div>
+
+          <div class="card site-list-card">
+            <p class="section-description">
+              Never show presence for these sites
+            </p>
+
+            <div class="site-list" id="disabled-sites-list">
+              <!-- Sites will be added here dynamically -->
+              <div class="empty-list-message">No sites added</div>
+            </div>
+
+            <div class="site-actions">
+              <button id="add-current-to-disabled" class="action-button">
+                <i class="fas fa-plus"></i> Disable Current Site
               </button>
+              <div class="site-input-group">
+                <input
+                  type="text"
+                  id="disabled-site-input"
+                  placeholder="e.g., youtube.com"
+                />
+                <button id="add-disabled-site" class="action-button">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+              </div>
+            </div>
+
+            <div class="site-list-note">
+              <i class="fas fa-info-circle"></i> Note: Enter domain names only
+              (e.g., youtube.com), not full URLs
             </div>
           </div>
         </div>
 
-        <div class="site-list-section">
-          <h3><i class="fas fa-star"></i> Always Enabled Sites</h3>
-          <p class="section-description">
-            Show presence even when globally disabled
-          </p>
-          <div class="warning-note">
-            <i class="fas fa-exclamation-triangle"></i> Warning: Sites added
-            here will ALWAYS show in your Discord presence when open, even if
-            presence is disabled
+        <!-- Always Enabled Sites Page -->
+        <div class="page" id="always-enabled-sites-page">
+          <div class="page-header">
+            <h2><i class="fas fa-star"></i> Always Enabled Sites</h2>
           </div>
 
-          <div class="site-list" id="always-enabled-sites-list">
-            <!-- Sites will be added here dynamically -->
-            <div class="empty-list-message">No sites added</div>
-          </div>
+          <div class="card site-list-card">
+            <p class="section-description">
+              Show presence even when globally disabled
+            </p>
 
-          <div class="site-actions">
-            <button id="add-current-to-always-enabled" class="action-button">
-              <i class="fas fa-plus"></i> Always Show Current Site
-            </button>
-            <div class="site-input-group">
-              <input
-                type="text"
-                id="always-enabled-site-input"
-                placeholder="e.g., github.com"
-              />
-              <button id="add-always-enabled-site" class="action-button">
-                <i class="fas fa-plus"></i> Add
+            <div class="warning-note">
+              <i class="fas fa-exclamation-triangle"></i> Warning: Sites added
+              here will ALWAYS show in your Discord presence when open, even if
+              presence is disabled
+            </div>
+
+            <div class="site-list" id="always-enabled-sites-list">
+              <!-- Sites will be added here dynamically -->
+              <div class="empty-list-message">No sites added</div>
+            </div>
+
+            <div class="site-actions">
+              <button id="add-current-to-always-enabled" class="action-button">
+                <i class="fas fa-plus"></i> Always Show Current Site
               </button>
+              <div class="site-input-group">
+                <input
+                  type="text"
+                  id="always-enabled-site-input"
+                  placeholder="e.g., github.com"
+                />
+                <button id="add-always-enabled-site" class="action-button">
+                  <i class="fas fa-plus"></i> Add
+                </button>
+              </div>
+            </div>
+
+            <div class="site-list-note">
+              <i class="fas fa-info-circle"></i> Note: Enter domain names only
+              (e.g., youtube.com), not full URLs
             </div>
           </div>
         </div>
 
-        <div class="site-list-note">
-          <i class="fas fa-info-circle"></i> Note: Enter domain names only
-          (e.g., youtube.com), not full URLs
-        </div>
-      </div>
+        <!-- Help Page -->
+        <div class="page" id="help-page">
+          <div class="page-header">
+            <h2><i class="fas fa-question-circle"></i> Help</h2>
+          </div>
 
-      <div class="card preview-card" id="preview">
-        <h2><i class="fas fa-eye"></i> Live Preview</h2>
-        <div class="discord-preview">
-          <div class="discord-avatar">
-            <div class="discord-avatar-inner">
-              <i class="fab fa-discord discord-logo"></i>
+          <div class="card help-card">
+            <h3>Getting Started</h3>
+            <ul class="help-list">
+              <li>
+                <i class="fas fa-check-circle"></i> Make sure Discord is running
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i> Server must be running
+                locally
+              </li>
+              <li>
+                <i class="fas fa-check-circle"></i> Toggle to enable/disable
+              </li>
+            </ul>
+
+            <h3 class="mt-4">About Web Presence</h3>
+            <p class="help-text">
+              Web Presence shows your browsing activity on Discord with rich
+              presence. You can customize how it appears, disable it for
+              specific sites, or set sites to always show even when presence is
+              globally disabled.
+            </p>
+
+            <div class="help-footer">
+              <p>by <span class="author-name">Utkarsh Tiwari</span></p>
             </div>
           </div>
-          <div class="discord-content">
-            <div class="discord-game">Web Browsing</div>
-            <div class="discord-details" id="preview-title">
-              Viewing - Loading...
-            </div>
-            <div class="discord-state" id="preview-url">
-              example.com - made by utkarsh tiwari
-            </div>
-            <div class="discord-time">
-              <i class="far fa-clock"></i> 00:00 elapsed
-            </div>
-            <div class="discord-buttons">
-              <div class="discord-button">GitHub Repository</div>
-              <div class="discord-button">Follow on Twitter</div>
-            </div>
-          </div>
         </div>
-      </div>
-
-      <div class="card help-card">
-        <h2><i class="fas fa-question-circle"></i> Quick Help</h2>
-        <ul class="help-list">
-          <li>
-            <i class="fas fa-check-circle"></i> Make sure Discord is running
-          </li>
-          <li>
-            <i class="fas fa-check-circle"></i> Server must be running locally
-          </li>
-          <li><i class="fas fa-check-circle"></i> Toggle to enable/disable</li>
-        </ul>
       </div>
 
       <div class="footer">
-        <p>
-          Made by <span class="author-name">Utkarsh Tiwari</span>
-          <i class="fas fa-heart"></i>
-        </p>
+        <p>by <span class="author-name">Utkarsh Tiwari</span></p>
         <div class="social-links">
           <a
             href="https://github.com/utkarshthedev/webpresence"
             target="_blank"
             title="GitHub Repository"
           >
-            <i class="fab fa-github"></i>
+            <i class="fab fa-github"></i> Star on GitHub
           </a>
           <a
             href="https://twitter.com/utkarshthedev"
             target="_blank"
             title="Twitter"
           >
-            <i class="fab fa-twitter"></i>
+            <i class="fab fa-twitter"></i> Follow on X
           </a>
         </div>
       </div>
