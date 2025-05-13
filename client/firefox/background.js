@@ -24,17 +24,28 @@ let userPreferences = {
 // Initialize the extension
 function initialize() {
   // Load settings from storage
-  browser.storage.local.get(["enabled", "userPreferences"]).then((data) => {
-    enabled = data.enabled !== undefined ? data.enabled : true;
+  browser.storage.local
+    .get(["enabled", "userPreferences", "firstInstall"])
+    .then((data) => {
+      enabled = data.enabled !== undefined ? data.enabled : true;
 
-    // Load user preferences if available
-    if (data.userPreferences) {
-      userPreferences = data.userPreferences;
-    }
+      // Load user preferences if available
+      if (data.userPreferences) {
+        userPreferences = data.userPreferences;
+      }
 
-    // Connect to WebSocket server
-    connectWebSocket();
-  });
+      // Check if this is the first install
+      if (data.firstInstall === undefined) {
+        // Mark as installed
+        browser.storage.local.set({ firstInstall: true });
+
+        // Open welcome page
+        browser.tabs.create({ url: "welcome.html" });
+      }
+
+      // Connect to WebSocket server
+      connectWebSocket();
+    });
 
   // Set up tab change listener
   browser.tabs.onActivated.addListener(handleTabChange);

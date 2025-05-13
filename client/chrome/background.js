@@ -24,12 +24,25 @@ let userPreferences = {
 // Initialize the extension
 async function initialize() {
   // Load settings from storage
-  const data = await chrome.storage.local.get(["enabled", "userPreferences"]);
+  const data = await chrome.storage.local.get([
+    "enabled",
+    "userPreferences",
+    "firstInstall",
+  ]);
   enabled = data.enabled !== undefined ? data.enabled : true;
 
   // Load user preferences if available
   if (data.userPreferences) {
     userPreferences = data.userPreferences;
+  }
+
+  // Check if this is the first install
+  if (data.firstInstall === undefined) {
+    // Mark as installed
+    chrome.storage.local.set({ firstInstall: true });
+
+    // Open welcome page
+    chrome.tabs.create({ url: "welcome.html" });
   }
 
   // Connect to WebSocket server

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to Web Presence</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #5865f2; /* Discord Blurple */
+        --primary-dark: #4752c4;
+        --primary-light: #7983f5;
+        --success-color: #3ba55c; /* Discord Online */
+        --error-color: #ed4245; /* Discord Error */
+        --background-color: #313338; /* Discord Dark */
+        --secondary-bg: #2b2d31; /* Discord Secondary */
+        --card-bg: #1e1f22; /* Discord Darker */
+        --text-color: #ffffff;
+        --text-muted: #b5bac1;
+        --border-radius: 10px;
+        --box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        --transition: all 0.2s ease;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        line-height: 1.6;
+        padding: 0;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px 20px;
+        width: 100%;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .logo {
+        width: 60px;
+        height: 60px;
+        margin-right: 20px;
+      }
+
+      .header-text {
+        flex: 1;
+      }
+
+      h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 5px;
+      }
+
+      .subtitle {
+        font-size: 16px;
+        color: var(--text-muted);
+      }
+
+      .card {
+        background-color: var(--secondary-bg);
+        border-radius: var(--border-radius);
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: var(--box-shadow);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--primary-light);
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      p {
+        margin-bottom: 15px;
+        color: var(--text-muted);
+      }
+
+      .step {
+        margin-bottom: 30px;
+      }
+
+      .step-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        font-weight: 600;
+        margin-right: 10px;
+      }
+
+      .step-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+      }
+
+      .code-block {
+        background-color: var(--card-bg);
+        border-radius: 6px;
+        padding: 15px;
+        margin: 15px 0;
+        font-family: monospace;
+        overflow-x: auto;
+        color: #e6e6e6;
+        border-left: 3px solid var(--primary-color);
+      }
+
+      .command {
+        display: block;
+        margin-bottom: 8px;
+        color: #e6e6e6;
+      }
+
+      .command::before {
+        content: "$ ";
+        color: var(--primary-color);
+        font-weight: bold;
+      }
+
+      .note {
+        background-color: rgba(88, 101, 242, 0.1);
+        border-left: 3px solid var(--primary-color);
+        padding: 12px 15px;
+        margin: 15px 0;
+        border-radius: 4px;
+      }
+
+      .note i {
+        color: var(--primary-color);
+        margin-right: 8px;
+      }
+
+      .checklist {
+        list-style: none;
+        margin: 15px 0;
+      }
+
+      .checklist li {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: flex-start;
+      }
+
+      .checklist i {
+        color: var(--success-color);
+        margin-right: 10px;
+        margin-top: 4px;
+      }
+
+      .button {
+        display: inline-block;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+        margin-top: 10px;
+        transition: var(--transition);
+        border: none;
+        cursor: pointer;
+      }
+
+      .button:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: auto;
+        padding: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .footer p {
+        font-size: 14px;
+        color: var(--text-muted);
+      }
+
+      .author-name {
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+
+      .social-links {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 10px;
+      }
+
+      .social-links a {
+        color: var(--text-muted);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        transition: var(--transition);
+      }
+
+      .social-links a i {
+        font-size: 16px;
+        color: var(--primary-color);
+      }
+
+      .social-links a:hover {
+        color: var(--primary-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img src="icons/icon128.png" alt="Web Presence Logo" class="logo" />
+        <div class="header-text">
+          <h1>Welcome to Web Presence</h1>
+          <div class="subtitle">
+            Share your browsing activity on Discord with rich presence
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><i class="fas fa-info-circle"></i> About Web Presence</h2>
+        <p>
+          Web Presence shows your current website in your Discord profile. When
+          you browse websites like YouTube, GitHub, or Twitter, your Discord
+          profile will display what you're doing with custom icons for each
+          site.
+        </p>
+        <p>
+          This extension works together with a local server that connects to
+          Discord. Let's make sure everything is set up correctly!
+        </p>
+      </div>
+
+      <div class="card">
+        <h2><i class="fas fa-list-check"></i> Setup Guide</h2>
+
+        <div class="step">
+          <div class="step-title">
+            <span class="step-number">1</span> Make Sure Discord is Running
+          </div>
+          <p>
+            Web Presence connects to the Discord desktop app (not the web or
+            mobile version).
+          </p>
+          <ul class="checklist">
+            <li>
+              <i class="fas fa-check-circle"></i> Make sure Discord desktop app
+              is open
+            </li>
+            <li>
+              <i class="fas fa-check-circle"></i> Check Discord Settings >
+              Activity Status > Make sure "Display current activity as a status
+              message" is ON
+            </li>
+          </ul>
+        </div>
+
+        <div class="step">
+          <div class="step-title">
+            <span class="step-number">2</span> Install the Server
+          </div>
+          <p>
+            Next, you need to install the Web Presence server. Open your
+            terminal or command prompt and run:
+          </p>
+          <div class="code-block">
+            <span class="command">npm install -g webpresence</span>
+          </div>
+          <div class="note">
+            <i class="fas fa-lightbulb"></i> Make sure you have
+            <a
+              href="https://nodejs.org/"
+              target="_blank"
+              style="color: var(--primary-color)"
+              >Node.js</a
+            >
+            installed (version 16 or higher).
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-title">
+            <span class="step-number">3</span> Start the Server
+          </div>
+          <p>
+            Start the Web Presence server in daemon mode so it runs in the
+            background:
+          </p>
+          <div class="code-block">
+            <span class="command">webpresence start -d</span>
+            <span class="command">webpresence status</span>
+          </div>
+          <div class="note">
+            <i class="fas fa-info-circle"></i> Using daemon mode (-d) lets the
+            server run in the background so you can close your terminal window!
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-title">
+            <span class="step-number">4</span> Enable Web Presence
+          </div>
+          <p>Now that everything is set up, you can enable Web Presence:</p>
+          <ul class="checklist">
+            <li>
+              <i class="fas fa-check-circle"></i> Click the Web Presence icon in
+              your browser toolbar
+            </li>
+            <li>
+              <i class="fas fa-check-circle"></i> Toggle the switch to enable
+              Discord presence
+            </li>
+            <li>
+              <i class="fas fa-check-circle"></i> Start browsing - your activity
+              will show in Discord!
+            </li>
+          </ul>
+          <button id="open-popup" class="button">
+            <i class="fas fa-check-circle"></i> I'm Ready to Start
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2><i class="fas fa-circle-exclamation"></i> Troubleshooting</h2>
+        <p>If you're having issues, try these common solutions:</p>
+
+        <div class="step-title">
+          <i class="fas fa-triangle-exclamation" style="color: #ed4245"></i>
+          Discord Not Connecting
+        </div>
+        <ul class="checklist">
+          <li>
+            <i class="fas fa-check-circle"></i> Restart Discord completely
+            (close from system tray)
+          </li>
+          <li>
+            <i class="fas fa-check-circle"></i> Restart the Web Presence server:
+            <div class="code-block">
+              <span class="command">webpresence stop</span>
+              <span class="command">webpresence start -d</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="step-title">
+          <i class="fas fa-triangle-exclamation" style="color: #ed4245"></i>
+          Server Not Running
+        </div>
+        <ul class="checklist">
+          <li>
+            <i class="fas fa-check-circle"></i> Check server status:
+            <div class="code-block">
+              <span class="command">webpresence status</span>
+            </div>
+          </li>
+          <li>
+            <i class="fas fa-check-circle"></i> If not running, start it again:
+            <div class="code-block">
+              <span class="command">webpresence start -d</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>by <span class="author-name">Utkarsh Tiwari</span></p>
+      <div class="social-links">
+        <a
+          href="https://github.com/utkarshthedev/webpresence"
+          target="_blank"
+          title="GitHub Repository"
+        >
+          <i class="fab fa-github"></i> Star on GitHub
+        </a>
+        <a
+          href="https://twitter.com/utkarshthedev"
+          target="_blank"
+          title="Twitter"
+        >
+          <i class="fab fa-twitter"></i> Follow on X
+        </a>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("open-popup").addEventListener("click", () => {
+        window.close();
+      });
+    </script>
+  </body>
+</html>
