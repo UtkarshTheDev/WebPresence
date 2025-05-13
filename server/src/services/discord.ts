@@ -68,9 +68,7 @@ async function connectToDiscord() {
         "✅ Discord RPC ready - Rich Presence can now be displayed"
       );
       if (rpc && rpc.user) {
-        logger.success(
-          `✅ Connected as Discord user: ${rpc.user.username}#${rpc.user.discriminator}`
-        );
+        logger.success(`✅ Connected to Discord successfully`);
       }
     });
 
@@ -117,7 +115,7 @@ async function connectToDiscord() {
     });
 
     // Login to Discord RPC
-    logger.info("Logging in with client ID:", discordConfig.clientId);
+    logger.info("Logging in with Discord RPC client...");
     try {
       await rpc.login({ clientId: discordConfig.clientId });
     } catch (error) {

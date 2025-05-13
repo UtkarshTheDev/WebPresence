@@ -4,7 +4,7 @@
 const defaultConfig = {
   // Discord RPC configuration
   discord: {
-    clientId: "1370122815273046117", // Pre-registered ID for Web Presence
+    clientId: "1370122815273046117", // Application ID (not logged for privacy)
     reconnectAttempts: 0,
     maxReconnectAttempts: 10,
   },
