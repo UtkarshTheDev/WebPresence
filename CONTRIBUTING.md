@@ -1,95 +1,122 @@
 # Contributing to Web Presence
 
-Thank you for your interest in contributing to Web Presence! This document provides guidelines and instructions for contributing to this project.
+Thank you for your interest in contributing to Web Presence! This guide will help you get started.
 
-## Ways to Contribute
+## Ways You Can Help
 
-There are several ways you can contribute to Web Presence:
+Even if you're not a developer, you can contribute to Web Presence:
 
-1. **Adding new site icons** (highest priority)
-2. Improving documentation
-3. Fixing bugs
-4. Adding new features
-5. Improving existing code
+1. **Add new site icons** - Help us support more websites (highest priority!)
+2. **Improve documentation** - Make our guides clearer and more helpful
+3. **Report bugs** - Let us know if something isn't working
+4. **Suggest features** - Share your ideas for making Web Presence better
+5. **Spread the word** - Tell others about Web Presence
 
-## Adding New Site Icons (Priority Contribution)
+## Adding New Site Icons (Easiest Way to Contribute)
 
-One of the most valuable ways to contribute is by adding new site icons for the Discord presence feature.
+One of the most helpful ways to contribute is by adding icons for new websites. You can do this even if you don't know how to code!
 
-### Step 1: Create the Icon
+### Option 1: Submit Icons Without Coding (For Beginners)
 
-1. Create or find a suitable icon for the website
+If you're not familiar with Git or coding, you can still contribute:
+
+1. **Find a good icon** for a website (PNG format, 512x512 pixels ideally)
+2. **Create an issue** on our [GitHub repository](https://github.com/utkarshthedev/webpresence/issues/new)
+3. **Attach the icon** to the issue
+4. **Tell us the website details**:
+   - Website domain (e.g., "example.com")
+   - Display name (e.g., "Example Site")
+
+That's it! We'll add the icon to the project for you.
+
+### Option 2: Add Icons Directly to the Code (For Developers)
+
+If you're comfortable with Git and want to add icons directly:
+
+#### Step 1: Set Up the Project
+
+1. Fork the repository on GitHub
+2. Clone your fork to your computer:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/webpresence.git
+   cd webpresence
+   ```
+
+#### Step 2: Find or Create an Icon
+
+1. Find the official logo for a website you want to add
+2. Make sure it's:
+
    - PNG format
-   - 512x512 pixels recommended (Discord will resize it)
-   - Clear, recognizable design
-   - Preferably the official logo of the website
+   - 512x512 pixels (or we can resize it)
+   - Clear and recognizable
+   - Preferably the official logo
 
-2. Save the icon in the `assets/site-icons` directory
-   - Name the file according to the `iconKey` you'll use in `siteIcons.ts`
-   - Example: `youtube.png`, `github.png`, etc.
+3. Save the icon in the `assets/site-icons` directory
+   - Name it something simple like `youtube.png` or `github.png`
 
-### Step 2: Update the Site Icons List
-
-Add the website to the `siteIcons.ts` file:
+#### Step 3: Add the Website to Our List
 
 1. Open `server/siteIcons.ts`
-2. Add a new entry to the `siteIcons` array in the appropriate category:
+2. Add a new entry in the appropriate category:
 
 ```typescript
 { domain: "example.com", iconKey: "example", displayName: "Example Site" }
 ```
 
 Where:
-- `domain`: The domain or part of domain to match (e.g., "youtube.com", "github")
-- `iconKey`: The key that matches your icon filename (without .png extension)
-- `displayName`: A user-friendly name to display in the Discord presence
 
-### Step 3: Submit a Pull Request
+- `domain`: The website address (e.g., "youtube.com")
+- `iconKey`: The name of your icon file without .png (e.g., "youtube")
+- `displayName`: The name to show in Discord (e.g., "YouTube")
 
-1. Commit your changes with a descriptive message
+#### Step 4: Share Your Contribution
+
+1. Commit your changes with a message like "Add icon for Example.com"
 2. Push to your fork
-3. Submit a pull request with a clear description of the sites you've added
+3. Submit a pull request
+4. We'll review it and merge it into the project!
 
-## General Contribution Guidelines
+## For Developers
 
-### Setting Up for Development
+If you want to contribute code:
+
+### Getting Started
 
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/webpresence.git`
-3. Install dependencies: `cd server && bun install`
+3. Install dependencies: `cd server && npm install`
 4. Make your changes
-5. Test your changes thoroughly
+5. Test thoroughly
 
-### Pull Request Process
+### Pull Request Tips
 
-1. Ensure your code follows the existing style
-2. Update documentation if necessary
-3. Test your changes thoroughly
-4. Create a pull request with a clear description of the changes
-
-### Code Style Guidelines
-
-- Use TypeScript for all new code
-- Follow the existing code style
-- Add comments for complex logic
-- Use meaningful variable and function names
+1. Keep changes focused on a single issue
+2. Follow the existing code style
+3. Add comments for complex code
+4. Test your changes before submitting
+5. Describe what your changes do and why they're needed
 
 ## Testing Your Changes
 
-Before submitting a pull request, please test your changes:
+Before submitting:
 
 1. For site icons:
-   - Upload your icons to your Discord Developer Portal
-   - Test that they appear correctly in Discord presence
-   - Verify that the domain matching works correctly
+
+   - Test that they appear correctly in Discord
+   - Make sure the website is detected properly
 
 2. For code changes:
    - Run the server locally
    - Test with the browser extension
-   - Verify that your changes work as expected
+   - Make sure everything works as expected
 
-## Questions?
+## Need Help?
 
-If you have any questions about contributing, please open an issue or reach out to the maintainers.
+If you have questions or need help, you can:
 
-Thank you for helping improve Web Presence!
+- Open an issue on GitHub
+- Reach out to the maintainers
+- Check the documentation for guidance
+
+Thank you for helping make Web Presence better!

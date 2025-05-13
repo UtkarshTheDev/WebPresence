@@ -4,172 +4,95 @@
   <img src="client/chrome/icons/icon128.png" alt="Web Presence Logo" width="80">
   <h3>Share your browsing activity on Discord</h3>
 
-Web Presence is a lightweight browser extension that displays your current web browsing activity in Discord through Rich Presence. Show your friends what websites you're exploring in real-time with an elegant, customizable interface.
+Web Presence shows your friends what websites you're browsing in real-time through Discord Rich Presence. It's easy to set up and works with most popular websites!
 
 </div>
 
-## ✨ Features
+## What is Web Presence?
 
-- **Real-time Tracking**: Displays your active tab's information in Discord
-- **Custom Site Icons**: Shows site-specific icons for popular websites
-- **Focused Site Support**: Prioritizes development, gaming, and entertainment sites
-- **Cross-browser Support**: Works with Chrome (Manifest V3) and Firefox (Manifest V2)
-- **User Privacy**: Toggle presence on/off with a single click
-- **Elegant UI**: Clean, Discord-themed interface
-- **Cross-platform**: Compatible with Windows, macOS, and Linux
-- **Expandable**: Easy to add support for more websites
+Web Presence is a simple tool that shows your current website in your Discord profile. When you browse websites like YouTube, GitHub, or Twitter, your Discord profile will display what you're doing with custom icons for each site.
 
-## 🖼️ Screenshots
+![Discord Profile Example](https://i.imgur.com/example.png)
 
-<div align="center">
-  <p><i>Coming Soon</i></p>
-</div>
+## Features
 
-## 🚀 Quick Start
+- 🌐 **Shows your current website** in Discord profile
+- 🎮 **Custom icons** for popular websites (YouTube, GitHub, Twitter, etc.)
+- 🔒 **Privacy controls** - easily turn it on/off or disable for specific sites
+- 🖥️ **Works on all platforms** - Windows, Mac, and Linux
+- 🧩 **Browser extension** for Chrome and Firefox
 
-### Prerequisites
+## Quick Install Guide
 
-- [Bun](https://bun.sh/) or [Node.js](https://nodejs.org/) (v16+)
-- Discord desktop application
-
-### Installation
-
-#### 1. Server Setup
-
-You can install and run the WebPresence server in two ways:
-
-**Option A: Using npm package (Recommended)**
+### Step 1: Install the Server
 
 ```bash
-# Install globally
+# Install with npm (make sure you have Node.js installed)
 npm install -g webpresence
 
-# Start the server
-webpresence start
+# Start the server in daemon mode (runs in background)
+webpresence start -d
 
-# Other available commands
-webpresence status    # Check server status
-webpresence toggle    # Toggle presence on/off
-webpresence config    # View or update configuration
-webpresence stop      # Stop the server
-webpresence help      # Show help
+# Check if server is running
+webpresence status
 ```
 
-**Option B: From source**
+> **Tip:** Using daemon mode (`-d`) lets the server run in the background so you can close your terminal window!
 
-```bash
-# Clone the repository
-git clone https://github.com/utkarshthedev/webpresence.git
-cd webpresence
-
-# Install and start the server
-cd server
-npm install
-npm start
-```
-
-#### 2. Browser Extension Setup
+### Step 2: Install the Browser Extension
 
 **For Chrome:**
 
-1. Go to `chrome://extensions/`
-2. Enable "Developer mode"
-3. Click "Load unpacked" and select the `client/chrome` directory
-4. The extension icon will appear in your toolbar
+1. Download the extension files
+2. Go to `chrome://extensions/`
+3. Turn on "Developer mode" (top-right corner)
+4. Click "Load unpacked" and select the `client/chrome` folder
 
 **For Firefox:**
 
 1. Go to `about:debugging#/runtime/this-firefox`
 2. Click "Load Temporary Add-on..."
-3. Select any file from the `client/firefox` directory
-4. The extension icon will appear in your toolbar
+3. Select any file from the `client/firefox` folder
 
-## 💡 How to Use
+### Step 3: Start Using It!
 
-1. Ensure the server is running (either `webpresence start` if installed globally, or `npm start` in the server directory)
-2. Verify Discord is open on your computer
-3. Click the Web Presence extension icon in your browser
-4. Toggle the switch to enable Rich Presence
-5. Your browsing activity will now appear in your Discord profile
+1. Make sure Discord is open on your computer
+2. Click the Web Presence icon in your browser
+3. Toggle the switch to turn it on
+4. Start browsing - your activity will show in Discord!
 
-## 🔧 Troubleshooting
+## Need Help?
 
-If you encounter any issues with the extension or Discord connection, please refer to the [Troubleshooting Guide](TROUBLESHOOTING.md) for detailed solutions to common problems.
+- [Installation Guide](docs/INSTALLATION.md) - Detailed setup instructions
+- [Troubleshooting](docs/TROUBLESHOOTING.md) - Solutions to common problems
+- [CLI Guide](docs/CLI.md) - How to use command-line features
+- [All Documentation](docs/index.md) - Complete documentation
 
-## 🛠️ Development
+## For Developers
 
-### Building for Production
+Want to customize Web Presence or contribute to the project? Check out these resources:
 
-```bash
-bun build index.ts --target node --outfile dist/index.js
-```
+- [Contributing Guide](CONTRIBUTING.md) - How to contribute to the project
+- [Site Icons Guide](docs/SITE_ICONS.md) - How to add new website icons
+- [CLI Reference](docs/CLI.md) - All command-line options
 
-### Using Your Own Discord Application
+## Using Your Own Discord Application
+
+You can use your own Discord application instead of the default one:
 
 1. Create a new application at the [Discord Developer Portal](https://discord.com/developers/applications)
 2. Copy your Client ID
 3. Replace the `clientId` in `server/config.ts`
-4. Upload custom assets for your Rich Presence display
+4. Upload custom icons to your Discord application
 
-### Custom Site Icons
-
-Web Presence now supports custom icons for popular websites. When you visit a supported site, the Discord presence will show a site-specific icon instead of the generic web icon.
-
-#### Automatic Icon Collection
-
-We've included a script to automatically download icons for all the websites listed in `siteIcons.ts`:
-
-```bash
-cd scripts
-npm install
-npm run collect-icons
-```
-
-This script will:
-
-1. Parse all domains from `siteIcons.ts`
-2. Download icons from multiple sources
-3. Process them to the correct size and format
-4. Save them to the `assets/site-icons` directory
-5. Generate a report of successful and failed downloads
-
-For icons that couldn't be automatically downloaded, the script also generates a helper HTML file to assist with manual collection.
-
-#### Adding Icons to Discord
-
-Once you have the icons:
-
-1. Go to your application in the [Discord Developer Portal](https://discord.com/developers/applications)
-2. Navigate to the "Rich Presence" > "Art Assets" section
-3. Upload your icons with names matching the `iconKey` values in `server/siteIcons.ts`
-4. For example, upload an icon named `youtube` for YouTube, `github` for GitHub, etc.
-
-The default configuration includes mappings for the most popular websites that users would want to show in their Discord presence, focusing on development, gaming, and entertainment sites. You can customize this list by editing the `siteIcons.ts` file.
-
-### Contributing Icons
-
-We welcome contributions of new site icons! If you'd like to add support for more websites:
-
-1. Create a 512x512 PNG icon for the website
-2. Add it to the `assets/site-icons` directory
-3. Update the `server/siteIcons.ts` file with the new website entry
-4. Submit a pull request
-
-See the [CONTRIBUTING.md](CONTRIBUTING.md) file for detailed guidelines.
-
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 📝 Changelog
+## Changelog
 
-See [server/CHANGELOG.md](server/CHANGELOG.md) for a detailed list of changes in each version.
+See [server/CHANGELOG.md](server/CHANGELOG.md) for a list of changes in each version.
 
-## 👏 Acknowledgements
-
-- [discord-rpc](https://www.npmjs.com/package/discord-rpc) for Discord integration
-- [ws](https://www.npmjs.com/package/ws) for WebSocket communication
-
-## 👤 Author
+## Author
 
 Made with ❤️ by [Utkarsh Tiwari](https://github.com/utkarshthedev)
