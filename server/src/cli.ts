@@ -22,7 +22,7 @@ import fs from "fs";
 import path, { join, dirname } from "path";
 import os from "os";
 import { fileURLToPath } from "url";
-import { spawn } from "child_process";
+import { spawn, execSync } from "child_process";
 import { StartOptions, ToggleOptions, ConfigOptions } from "./types/cli.js";
 import { logger } from "./utils/logger.js";
 import {
@@ -199,15 +199,26 @@ program
     const spinner = ora("Checking WebPresence server status...").start();
 
     try {
-      // Get comprehensive server status
+      // Get comprehensive server status with silent checks
       const status = getServerStatus({
         checkPort: true,
         checkApi: true,
         checkDaemon: true,
       });
 
-      if (!status.running) {
+      // Suppress any output from the status check
+
+      if (!status.running && !status.daemonRunning) {
         spinner.info("No WebPresence server is running");
+
+        // Clean up any stale PID files
+        const daemonDir = path.join(os.homedir(), ".webpresence");
+        const pidFile = path.join(daemonDir, "webpresence.pid");
+        if (fs.existsSync(pidFile)) {
+          fs.unlinkSync(pidFile);
+          spinner.info("Removed stale PID file");
+        }
+
         return;
       }
 
@@ -273,11 +284,15 @@ program
             }, 5000);
           });
 
-          // Check if the PID file exists and remove it
+          // Always clean up the PID file, even if the process didn't exit
           const daemonDir = path.join(os.homedir(), ".webpresence");
           const pidFile = path.join(daemonDir, "webpresence.pid");
           if (fs.existsSync(pidFile)) {
             fs.unlinkSync(pidFile);
+            fs.appendFileSync(
+              logFile,
+              `[${new Date().toISOString()}] Removed PID file\n`
+            );
           }
 
           // Log the successful stop
@@ -299,8 +314,13 @@ program
             spinner.info("Removed stale PID file");
           }
         }
-      } else {
-        // No daemon, but server is running - try API
+      }
+
+      // Check if the server is still running (even if daemon was stopped)
+      const serverRunning = isServerRunning({ checkPort: true });
+
+      if (serverRunning) {
+        // Server is running - try API
         const serverPort = config.getServer().port;
         spinner.text = `Stopping WebPresence server on port ${serverPort}...`;
 
@@ -342,9 +362,13 @@ program
               // Find process using the port
               let pid;
               if (process.platform === "win32") {
-                const output = require("child_process").execSync(
+                const { execSync } = require("child_process");
+                const output = execSync(
                   `netstat -ano | findstr :${serverPort}`,
-                  { encoding: "utf8" }
+                  {
+                    encoding: "utf8",
+                    stdio: ["ignore", "pipe", "ignore"], // Suppress stderr
+                  }
                 );
                 // Extract PID from the last column
                 const match = output.match(/(\d+)$/m);
@@ -353,10 +377,11 @@ program
                 }
               } else {
                 // Linux/Unix
-                const output = require("child_process").execSync(
-                  `lsof -i :${serverPort} -t`,
-                  { encoding: "utf8" }
-                );
+                const { execSync } = require("child_process");
+                const output = execSync(`lsof -i :${serverPort} -t`, {
+                  encoding: "utf8",
+                  stdio: ["ignore", "pipe", "ignore"], // Suppress stderr
+                });
                 pid = parseInt(output.trim(), 10);
               }
 
@@ -364,7 +389,8 @@ program
                 spinner.text = `Found process using port ${serverPort} (PID: ${pid}). Stopping...`;
 
                 if (process.platform === "win32") {
-                  require("child_process").execSync(`taskkill /PID ${pid} /F`);
+                  const { execSync } = require("child_process");
+                  execSync(`taskkill /PID ${pid} /F`);
                 } else {
                   process.kill(pid, "SIGTERM");
 
@@ -401,12 +427,11 @@ program
                 ? `netstat -ano | findstr :${serverPort}`
                 : `netstat -tuln | grep :${serverPort}`;
 
-            const netstatOutput = require("child_process").execSync(
-              netstatCommand,
-              {
-                encoding: "utf8",
-              }
-            );
+            const { execSync } = require("child_process");
+            const netstatOutput = execSync(netstatCommand, {
+              encoding: "utf8",
+              stdio: ["ignore", "pipe", "ignore"], // Suppress stderr
+            });
 
             if (netstatOutput.trim().length > 0) {
               spinner.warn(
@@ -428,11 +453,18 @@ program
 
       // Final check to see if the server is still running
       try {
-        const finalStatus = getServerStatus({ checkPort: true });
+        const finalStatus = getServerStatus({
+          checkPort: true,
+          checkDaemon: true,
+          checkApi: false,
+        });
+
         if (finalStatus.running) {
           spinner.warn(
             "Server may still be running. Use --force to kill it or check running processes manually."
           );
+        } else {
+          spinner.succeed("WebPresence has been stopped successfully");
         }
       } catch (e) {
         // Ignore errors in final check
@@ -440,6 +472,18 @@ program
     } catch (error: any) {
       spinner.fail(`Error stopping server: ${error.message}`);
       logger.error(`Error details: ${error.stack}`);
+
+      // Even if there's an error, try to clean up the PID file
+      try {
+        const daemonDir = path.join(os.homedir(), ".webpresence");
+        const pidFile = path.join(daemonDir, "webpresence.pid");
+        if (fs.existsSync(pidFile)) {
+          fs.unlinkSync(pidFile);
+          spinner.info("Removed PID file");
+        }
+      } catch (cleanupError) {
+        // Ignore cleanup errors
+      }
     }
   });
 
@@ -461,6 +505,18 @@ program
       console.log(chalk.blue("Log file:"), chalk.green(getDaemonLogPath()));
     } else {
       console.log(chalk.red("No"));
+
+      // If there's a stale PID file, clean it up
+      try {
+        const daemonDir = path.join(os.homedir(), ".webpresence");
+        const pidFile = path.join(daemonDir, "webpresence.pid");
+        if (fs.existsSync(pidFile)) {
+          fs.unlinkSync(pidFile);
+          console.log(chalk.yellow("Removed stale PID file"));
+        }
+      } catch (e) {
+        // Ignore errors when removing the PID file
+      }
     }
 
     // Get comprehensive server status using our improved function
@@ -468,24 +524,139 @@ program
     const status = getServerStatus({
       checkPort: true,
       checkApi: true,
-      checkDaemon: true,
+      checkDaemon: false, // We already checked daemon status above
     });
 
-    // Server status
+    // Check if the port is in use
+    let portInUse = false;
+    try {
+      const serverPort = config.getServer().port;
+
+      // Try using a simple socket check first
+      try {
+        // Use a synchronous approach with TCP socket
+        const net = require("net");
+        const socket = new net.Socket();
+        let isConnected = false;
+
+        // Try to connect to the port
+        socket.connect(serverPort, "127.0.0.1");
+
+        // Set a timeout for the connection attempt
+        socket.setTimeout(500);
+
+        // If we can connect, the port is in use
+        socket.on("connect", () => {
+          isConnected = true;
+          socket.destroy();
+        });
+
+        // Wait a moment for the connection attempt
+        try {
+          execSync("sleep 0.2", { stdio: "ignore" });
+        } catch (e) {
+          // Ignore sleep errors on Windows
+          // On Windows, use a different approach
+          if (process.platform === "win32") {
+            try {
+              execSync(`ping -n 1 -w 200 127.0.0.1 >nul`, { stdio: "ignore" });
+            } catch (pingError) {
+              // Ignore ping errors
+            }
+          }
+        }
+
+        if (isConnected) {
+          portInUse = true;
+        }
+      } catch (socketError) {
+        // Ignore socket errors
+      }
+
+      // If socket check failed, try netstat as a fallback
+      if (!portInUse) {
+        try {
+          const netstatCommand =
+            process.platform === "win32"
+              ? `netstat -ano | findstr :${serverPort}`
+              : `netstat -tuln | grep :${serverPort}`;
+
+          // Use the imported execSync instead of dynamic require
+          const output = execSync(netstatCommand, {
+            encoding: "utf8",
+            stdio: ["ignore", "pipe", "ignore"], // Suppress stderr to avoid showing command not found errors
+          });
+
+          if (output && output.trim().length > 0) {
+            // Port is in use, which suggests the server is running
+            portInUse = true;
+          }
+        } catch (netstatError) {
+          // If netstat fails, try using lsof on Unix-like systems
+          if (process.platform !== "win32") {
+            try {
+              const lsofOutput = execSync(`lsof -i :${serverPort} -t`, {
+                encoding: "utf8",
+                stdio: ["ignore", "pipe", "ignore"], // Suppress stderr
+              });
+
+              if (lsofOutput && lsofOutput.trim()) {
+                portInUse = true;
+              }
+            } catch (lsofError) {
+              // Ignore lsof errors
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore errors
+    }
+
+    // Server status - consider the server running if either the daemon is running or the port is in use
+    const serverRunning = status.running || daemonRunning || portInUse;
+
     process.stdout.write(chalk.blue("Server running: "));
-    if (status.running) {
+    if (serverRunning) {
       console.log(chalk.green("Yes"));
     } else {
       console.log(chalk.red("No"));
     }
 
-    if (status.running) {
+    if (serverRunning) {
       // Port
-      console.log(chalk.blue("Port:"), chalk.green(status.port));
+      console.log(
+        chalk.blue("Port:"),
+        chalk.green(status.port || config.getServer().port)
+      );
 
       // Discord connection
       process.stdout.write(chalk.blue("Discord connected: "));
-      if (status.discordConnected) {
+
+      // Try to check Discord connection status directly
+      let discordConnected = status.discordConnected;
+
+      // If the server is running but Discord shows as not connected,
+      // try to check the log file for Discord connection status
+      if (serverRunning && !discordConnected) {
+        try {
+          const logFile = getDaemonLogPath();
+          if (fs.existsSync(logFile)) {
+            const logContent = fs.readFileSync(logFile, "utf8");
+            // Check if the log contains successful Discord connection messages
+            if (
+              logContent.includes("Connected to Discord RPC service") &&
+              logContent.includes("Discord RPC ready")
+            ) {
+              discordConnected = true;
+            }
+          }
+        } catch (e) {
+          // Ignore errors reading log file
+        }
+      }
+
+      if (discordConnected) {
         console.log(chalk.green("Yes"));
       } else {
         console.log(chalk.yellow("No"));
@@ -495,6 +666,21 @@ program
       process.stdout.write(chalk.blue("Presence enabled: "));
       if (status.presenceEnabled) {
         console.log(chalk.green("Yes"));
+
+        // If presence is enabled but Discord shows as not connected,
+        // add a warning
+        if (!discordConnected) {
+          console.log(
+            chalk.yellow(
+              "  ⚠️  Warning: Presence is enabled but Discord connection appears to be down."
+            )
+          );
+          console.log(
+            chalk.yellow(
+              "     Make sure Discord is running and Game Activity is enabled in Discord settings."
+            )
+          );
+        }
       } else {
         console.log(chalk.yellow("No"));
       }
@@ -505,7 +691,7 @@ program
     }
 
     // If nothing is running, show help
-    if (!status.running) {
+    if (!serverRunning) {
       console.log(chalk.cyan("\nTo start the server, run:"));
       console.log(chalk.cyan("  webpresence start"));
       console.log(chalk.cyan("\nTo start in daemon mode, run:"));

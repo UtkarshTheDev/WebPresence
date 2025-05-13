@@ -1,6 +1,7 @@
 import express from "express";
 import http from "http";
 import cors from "cors";
+import { execSync } from "child_process";
 import { discord } from "./services/discord.js";
 import { initWebSocketServer } from "./services/websocket.js";
 import { config } from "./config/index.js";
@@ -238,23 +239,84 @@ export function isServerRunning(options?: {
 
   // Check if the port is in use (if requested)
   if (opts.checkPort) {
+    const serverPort = config.getServer().port;
+
+    // Try using a simple socket check
     try {
-      const serverPort = config.getServer().port;
+      // Use a synchronous approach with TCP socket
+      const net = require("net");
+      const socket = new net.Socket();
+      let isConnected = false;
+
+      // Try to connect to the port
+      socket.connect(serverPort, "127.0.0.1");
+
+      // Set a timeout for the connection attempt
+      socket.setTimeout(500);
+
+      // If we can connect, the port is in use
+      socket.on("connect", () => {
+        isConnected = true;
+        socket.destroy();
+      });
+
+      // Wait a moment for the connection attempt
+      try {
+        execSync("sleep 0.2", { stdio: "ignore" });
+      } catch (e) {
+        // Ignore sleep errors on Windows
+        // On Windows, use a different approach
+        if (process.platform === "win32") {
+          try {
+            execSync(`ping -n 1 -w 200 127.0.0.1 >nul`, { stdio: "ignore" });
+          } catch (pingError) {
+            // Ignore ping errors
+          }
+        }
+      }
+
+      if (isConnected) {
+        return true;
+      }
+    } catch (socketError) {
+      // Ignore socket errors
+    }
+
+    // Try using netstat as a fallback, but suppress errors
+    try {
       const netstatCommand =
         process.platform === "win32"
           ? `netstat -ano | findstr :${serverPort}`
           : `netstat -tuln | grep :${serverPort}`;
 
-      const output = require("child_process").execSync(netstatCommand, {
+      // Use the imported execSync instead of dynamic require
+      const output = execSync(netstatCommand, {
         encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"], // Suppress stderr to avoid showing command not found errors
       });
 
-      if (output.trim().length > 0) {
+      if (output && output.trim().length > 0) {
         // Port is in use, which suggests the server is running
         return true;
       }
-    } catch (e) {
-      // If netstat fails, continue with other checks
+    } catch (netstatError) {
+      // If netstat fails, try using lsof on Unix-like systems
+      if (process.platform !== "win32") {
+        try {
+          const lsofOutput = execSync(`lsof -i :${serverPort} -t`, {
+            encoding: "utf8",
+            stdio: ["ignore", "pipe", "ignore"], // Suppress stderr
+          });
+
+          if (lsofOutput && lsofOutput.trim()) {
+            return true;
+          }
+        } catch (lsofError) {
+          // Ignore lsof errors
+        }
+      }
+
+      // If all command-line checks fail, continue with other checks
     }
   }
 
@@ -262,26 +324,28 @@ export function isServerRunning(options?: {
   if (opts.checkApi) {
     try {
       const serverPort = config.getServer().port;
-      const http = require("http");
 
-      // Try to connect to the server (synchronous check)
-      const req = http.get(`http://localhost:${serverPort}/api/status`, {
-        timeout: 500, // Short timeout to avoid hanging
-      });
+      // Use a more reliable method to check if the API is responding
+      try {
+        // Try a simple HTTP request to check if the server is responding
+        const testCommand =
+          process.platform === "win32"
+            ? `curl -s -o nul -w "%{http_code}" http://localhost:${serverPort}/api/status`
+            : `curl -s -o /dev/null -w "%{http_code}" http://localhost:${serverPort}/api/status`;
 
-      // If we get here without an error, the server is likely running
-      req.on("response", () => {
-        req.destroy(); // Clean up the request
-        return true;
-      });
+        const statusCode = execSync(testCommand, { encoding: "utf8" });
 
-      req.on("error", () => {
-        // Error connecting, server might not be running
+        // If we get a 2xx or 3xx status code, the server is running
+        if (
+          parseInt(statusCode.trim()) >= 200 &&
+          parseInt(statusCode.trim()) < 400
+        ) {
+          return true;
+        }
+      } catch (curlError) {
+        // If curl fails, the server is probably not running
         return false;
-      });
-
-      // Wait a short time for the request to complete
-      require("child_process").execSync("sleep 0.5", { stdio: "ignore" });
+      }
     } catch (e) {
       // If the request fails, continue with other checks
     }
@@ -319,29 +383,40 @@ export function getServerStatus(options?: {
   let daemonRunning = false;
   if (opts.checkDaemon) {
     try {
-      const fs = require("fs");
-      const os = require("os");
-      const path = require("path");
-
-      // Check if the PID file exists
-      const pidFile = path.join(
-        os.homedir(),
-        ".webpresence",
-        "webpresence.pid"
-      );
-      if (fs.existsSync(pidFile)) {
-        const pid = parseInt(fs.readFileSync(pidFile, "utf8").trim(), 10);
-
-        // Check if the process is running
-        try {
-          process.kill(pid, 0);
-          daemonRunning = true;
-        } catch (e) {
-          // Process is not running
-        }
-      }
+      // Import the daemon utilities
+      const { isDaemonRunning } = require("./utils/daemon.js");
+      daemonRunning = isDaemonRunning();
     } catch (e) {
-      // Error checking daemon status
+      // Error importing daemon utilities
+      logger.warn(`Error checking daemon status: ${e}`);
+
+      // Fallback method if the import fails
+      try {
+        const fs = require("fs");
+        const os = require("os");
+        const path = require("path");
+
+        // Check if the PID file exists
+        const pidFile = path.join(
+          os.homedir(),
+          ".webpresence",
+          "webpresence.pid"
+        );
+        if (fs.existsSync(pidFile)) {
+          const pid = parseInt(fs.readFileSync(pidFile, "utf8").trim(), 10);
+
+          // Check if the process is running
+          try {
+            process.kill(pid, 0);
+            daemonRunning = true;
+          } catch (e) {
+            // Process is not running
+          }
+        }
+      } catch (fallbackError) {
+        // Error in fallback method
+        logger.warn(`Error in fallback daemon check: ${fallbackError}`);
+      }
     }
   }
 
@@ -349,31 +424,104 @@ export function getServerStatus(options?: {
   let portInUse = false;
   try {
     const serverPort = config.getServer().port;
-    const netstatCommand =
-      process.platform === "win32"
-        ? `netstat -ano | findstr :${serverPort}`
-        : `netstat -tuln | grep :${serverPort}`;
 
-    const output = require("child_process").execSync(netstatCommand, {
-      encoding: "utf8",
-    });
+    // Try using a simple socket check first
+    try {
+      // Use a synchronous approach with TCP socket
+      const net = require("net");
+      const socket = new net.Socket();
+      let isConnected = false;
 
-    if (output.trim().length > 0) {
-      // Port is in use, which suggests the server is running
-      portInUse = true;
+      // Try to connect to the port
+      socket.connect(serverPort, "127.0.0.1");
+
+      // Set a timeout for the connection attempt
+      socket.setTimeout(500);
+
+      // If we can connect, the port is in use
+      socket.on("connect", () => {
+        isConnected = true;
+        socket.destroy();
+      });
+
+      // Wait a moment for the connection attempt
+      try {
+        execSync("sleep 0.2", { stdio: "ignore" });
+      } catch (e) {
+        // Ignore sleep errors on Windows
+        // On Windows, use a different approach
+        if (process.platform === "win32") {
+          try {
+            execSync(`ping -n 1 -w 200 127.0.0.1 >nul`, { stdio: "ignore" });
+          } catch (pingError) {
+            // Ignore ping errors
+          }
+        }
+      }
+
+      if (isConnected) {
+        portInUse = true;
+      }
+    } catch (socketError) {
+      // Ignore socket errors
+    }
+
+    // If socket check failed, try netstat as a fallback
+    if (!portInUse) {
+      try {
+        const netstatCommand =
+          process.platform === "win32"
+            ? `netstat -ano | findstr :${serverPort}`
+            : `netstat -tuln | grep :${serverPort}`;
+
+        // Use the imported execSync instead of dynamic require
+        const output = execSync(netstatCommand, {
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "ignore"], // Suppress stderr to avoid showing command not found errors
+        });
+
+        if (output && output.trim().length > 0) {
+          // Port is in use, which suggests the server is running
+          portInUse = true;
+        }
+      } catch (netstatError) {
+        // If netstat fails, try using lsof on Unix-like systems
+        if (process.platform !== "win32") {
+          try {
+            const lsofOutput = execSync(`lsof -i :${serverPort} -t`, {
+              encoding: "utf8",
+              stdio: ["ignore", "pipe", "ignore"], // Suppress stderr
+            });
+
+            if (lsofOutput && lsofOutput.trim()) {
+              portInUse = true;
+            }
+          } catch (lsofError) {
+            // Ignore lsof errors
+          }
+        }
+      }
     }
   } catch (e) {
-    // If netstat fails, continue with other checks
+    // If all checks fail, continue with other checks
   }
 
   // Determine if the server is running based on all checks
-  const running = isRunning || serverRunning || daemonRunning || portInUse;
+  const running = isRunning || serverRunning || portInUse;
+
+  // If the daemon is running but the server appears to not be running,
+  // this indicates a potential issue that should be fixed
+  if (daemonRunning && !running) {
+    logger.warn(
+      "Daemon is running but server appears to be down. This may indicate an issue."
+    );
+  }
 
   return {
-    running,
-    port: running ? config.getServer().port : null,
+    running: running || daemonRunning, // Consider the server running if either the server or daemon is running
+    port: running || daemonRunning ? config.getServer().port : null,
     discordConnected: discord.isConnected(),
-    presenceEnabled: running ? true : false, // This will be updated with actual state in future
+    presenceEnabled: running || daemonRunning ? true : false, // This will be updated with actual state in future
     daemonRunning: daemonRunning,
   };
 }

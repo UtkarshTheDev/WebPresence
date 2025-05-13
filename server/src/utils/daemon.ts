@@ -4,12 +4,13 @@
  * Provides functionality for running the server as a background daemon process
  */
 
-import { spawn } from "child_process";
+import { spawn, execSync } from "child_process";
 import fs from "fs";
 import path from "path";
 import os from "os";
 import { logger } from "./logger.js";
 import { fileURLToPath } from "url";
+import { config } from "../config/index.js";
 
 // Get the directory where the daemon files will be stored
 const DAEMON_DIR = path.join(os.homedir(), ".webpresence");
@@ -231,8 +232,10 @@ export function isDaemonRunning(): boolean {
         psCommand = `ps -p ${pid} -o comm=,args=`;
       }
 
-      const output = require("child_process").execSync(psCommand, {
+      // Use the imported execSync instead of dynamic require
+      const output = execSync(psCommand, {
         encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"], // Suppress stderr
       });
 
       // Log the process info for debugging
@@ -261,31 +264,89 @@ export function isDaemonRunning(): boolean {
       // Additional check: see if the server port is in use
       try {
         // Try to check if the port is in use
-        const serverPort = 8874; // Default port, could be read from config
-        const netstatCommand =
-          process.platform === "win32"
-            ? `netstat -ano | findstr :${serverPort}`
-            : `netstat -tuln | grep :${serverPort}`;
+        const serverPort = config.getServer().port || 8874; // Use configured port or default
 
-        const netstatOutput = require("child_process").execSync(
-          netstatCommand,
-          {
+        // First try using a more portable method with Node.js
+        try {
+          // Try to create a server on the port to see if it's available
+          const net = require("net");
+          const tester = net
+            .createServer()
+            .once("error", (err: any) => {
+              if (err.code === "EADDRINUSE") {
+                // Port is in use, which is a good sign
+                fs.appendFileSync(
+                  LOG_FILE,
+                  `[${new Date().toISOString()}] Port ${serverPort} is in use (Node.js check)\n`
+                );
+                tester.close();
+                return true;
+              }
+            })
+            .once("listening", () => {
+              // If we can listen, the port is not in use, which means our server is not running
+              tester.close();
+            });
+
+          // Try to listen on the port
+          tester.listen(serverPort);
+        } catch (nodeCheckError) {
+          // Ignore errors in the Node.js check
+        }
+
+        // Try using netstat as a fallback
+        try {
+          const netstatCommand =
+            process.platform === "win32"
+              ? `netstat -ano | findstr :${serverPort}`
+              : `netstat -tuln | grep :${serverPort}`;
+
+          // Use the imported execSync instead of dynamic require
+          const netstatOutput = execSync(netstatCommand, {
             encoding: "utf8",
+            stdio: ["ignore", "pipe", "ignore"], // Suppress stderr to avoid showing command not found errors
+          });
+
+          fs.appendFileSync(
+            LOG_FILE,
+            `[${new Date().toISOString()}] Port check for ${serverPort}: ${netstatOutput.trim()}\n`
+          );
+
+          // If we get here, the port is in use, which is a good sign
+          return true;
+        } catch (netstatError) {
+          // If netstat fails, try using lsof on Unix-like systems
+          if (process.platform !== "win32") {
+            try {
+              const lsofOutput = execSync(`lsof -i :${serverPort} -t`, {
+                encoding: "utf8",
+                stdio: ["ignore", "pipe", "ignore"], // Suppress stderr
+              });
+
+              if (lsofOutput.trim()) {
+                fs.appendFileSync(
+                  LOG_FILE,
+                  `[${new Date().toISOString()}] Port ${serverPort} is in use (lsof check)\n`
+                );
+                return true;
+              }
+            } catch (lsofError) {
+              // Ignore lsof errors
+            }
           }
-        );
 
+          // If all port checks fail, we'll still return true if it looks like our process
+          fs.appendFileSync(
+            LOG_FILE,
+            `[${new Date().toISOString()}] Port check failed, but process appears to be running\n`
+          );
+          return isWebPresenceProcess;
+        }
+      } catch (portCheckError) {
+        // If all port checks fail, we'll still return true if it looks like our process
         fs.appendFileSync(
           LOG_FILE,
-          `[${new Date().toISOString()}] Port check for ${serverPort}: ${netstatOutput.trim()}\n`
-        );
-
-        // If we get here, the port is in use, which is a good sign
-        return true;
-      } catch (netstatError) {
-        // If netstat fails or port is not in use, we'll still return true if it looks like our process
-        fs.appendFileSync(
-          LOG_FILE,
-          `[${new Date().toISOString()}] Port check failed, but process appears to be running\n`
+          `[${new Date().toISOString()}] All port checks failed, but process appears to be running\n`
         );
         return isWebPresenceProcess;
       }
@@ -296,7 +357,21 @@ export function isDaemonRunning(): boolean {
         LOG_FILE,
         `[${new Date().toISOString()}] Error checking process details: ${e}\n`
       );
-      return true;
+
+      // Just check if the process exists using process.kill(pid, 0)
+      // This is more reliable than trying to use platform-specific commands
+      try {
+        process.kill(pid, 0);
+        return true;
+      } catch (killError) {
+        // Process doesn't exist
+        fs.unlinkSync(PID_FILE);
+        fs.appendFileSync(
+          LOG_FILE,
+          `[${new Date().toISOString()}] Process with PID ${pid} does not exist, removing PID file\n`
+        );
+        return false;
+      }
     }
   } catch (error) {
     // If the process is not running, remove the PID file
