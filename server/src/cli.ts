@@ -31,6 +31,11 @@ import {
   getDaemonPid,
   getDaemonLogPath,
 } from "./utils/daemon.js";
+import {
+  checkForUpdates,
+  updatePackage,
+  displayUpdateNotification,
+} from "./utils/update-checker.js";
 
 // Get package.json for version info
 const __filename = fileURLToPath(import.meta.url);
@@ -987,6 +992,83 @@ program
   .action(() => {
     program.help();
   });
+
+// Update command
+program
+  .command("update")
+  .description("Update WebPresence to the latest version")
+  .action(async () => {
+    const spinner = ora("Checking for updates...").start();
+
+    try {
+      const { hasUpdate, currentVersion, latestVersion } =
+        await checkForUpdates();
+
+      if (hasUpdate) {
+        spinner.succeed(
+          `Update available: ${currentVersion} → ${latestVersion}`
+        );
+        console.log(chalk.cyan("\nUpdating WebPresence..."));
+
+        const updateResult = await updatePackage();
+
+        if (updateResult.success) {
+          console.log(
+            chalk.green("\n✓ WebPresence has been updated successfully!")
+          );
+          console.log(
+            chalk.cyan(
+              "\nPlease run your command again to use the updated version."
+            )
+          );
+        } else {
+          console.log(chalk.red(`\n✗ ${updateResult.message}`));
+          console.log(
+            chalk.yellow(
+              "\nYou may need to run the update with administrator/sudo privileges:"
+            )
+          );
+          console.log(chalk.cyan("  sudo npm install -g webpresence@latest"));
+        }
+      } else {
+        spinner.succeed(
+          `WebPresence is already at the latest version (${currentVersion}).`
+        );
+      }
+    } catch (error: any) {
+      spinner.fail(`Error checking for updates: ${error.message}`);
+    }
+  });
+
+// Function to check for updates before executing commands
+async function checkForUpdateBeforeCommand() {
+  try {
+    // Skip update check if explicitly running the update command
+    if (process.argv.includes("update")) {
+      return;
+    }
+
+    // Skip update check for daemon processes
+    if (
+      process.env.WEBPRESENCE_DAEMON_CHILD === "true" ||
+      process.env.WEBPRESENCE_DAEMON === "true"
+    ) {
+      return;
+    }
+
+    const { hasUpdate, currentVersion, latestVersion } =
+      await checkForUpdates();
+
+    if (hasUpdate) {
+      displayUpdateNotification(currentVersion, latestVersion);
+    }
+  } catch (error) {
+    // Silently fail - don't prevent command execution if update check fails
+  }
+}
+
+// Check for updates before executing any command
+await checkForUpdateBeforeCommand();
 
 // Parse command line arguments
 program.parse();

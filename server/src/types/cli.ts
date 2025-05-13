@@ -34,6 +34,13 @@ export interface ConfigOptions {
 }
 
 /**
+ * Options for the update command
+ */
+export interface UpdateOptions {
+  force?: boolean;
+}
+
+/**
  * Result of a CLI command
  */
 export interface CommandResult {

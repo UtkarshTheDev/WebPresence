@@ -2,6 +2,19 @@
 
 All notable changes to the WebPresence package will be documented in this file.
 
+## [2.1.0] - 2025-04-15
+
+### Added
+
+- Auto-update feature that checks for new versions when commands are run
+- New `update` command to manually check for and install updates
+- Visual notification when updates are available
+
+### Changed
+
+- Improved package management with automatic update checks
+- Enhanced user experience with update notifications
+
 ## [2.0.0] - 2025-04-13
 
 ### Added
