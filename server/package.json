@@ -1,6 +1,6 @@
 {
   "name": "webpresence",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Discord Rich Presence for websites - Show your browsing activity in Discord",
   "type": "module",
   "main": "dist/api.js",

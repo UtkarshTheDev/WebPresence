@@ -11,6 +11,7 @@ Web Presence comes with a powerful command-line interface (CLI) that lets you co
 | `webpresence status` | Check if the server is running and connected to Discord |
 | `webpresence toggle` | Turn Discord presence on or off                         |
 | `webpresence config` | View or change configuration settings                   |
+| `webpresence update` | Check for and install package updates                   |
 | `webpresence help`   | Show help information                                   |
 
 ## Detailed Usage
@@ -92,6 +93,21 @@ webpresence config --continuous-timer false
 # Stop the server (works for both normal and daemon mode)
 webpresence stop
 ```
+
+### Updating the Package
+
+```bash
+# Check for and install updates
+webpresence update
+```
+
+The update command will:
+
+1. Check if a newer version is available on npm
+2. If an update is found, install it automatically
+3. Notify you to run your command again with the updated version
+
+> **Note:** WebPresence automatically checks for updates whenever you run any command and will notify you when updates are available.
 
 ## Advanced Usage
 
