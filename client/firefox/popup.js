@@ -92,15 +92,34 @@ function updateState({ enabled, connected, preferences }) {
 // Check if the Discord connection is active
 async function checkDiscordConnection() {
   try {
-    const response = await fetch("http://localhost:8874/status");
+    const response = await fetch("http://localhost:8874/api/status");
     const data = await response.json();
 
+    // Update Discord connection status
     discordStatusEl.className = data.discordConnected
       ? "status-indicator connected"
       : "status-indicator";
+
+    // Also update the server connection status
+    serverStatusEl.className = data.running
+      ? "status-indicator connected"
+      : "status-indicator";
+
+    // Update the presence toggle to match server state
+    if (toggleEl.checked !== data.presenceEnabled) {
+      toggleEl.checked = data.presenceEnabled;
+      isEnabled = data.presenceEnabled;
+    }
+
+    // Update user preferences if available
+    if (data.preferences) {
+      userPreferences = data.preferences;
+      updateSiteLists();
+    }
   } catch (error) {
     console.warn("Unable to connect to server:", error);
     discordStatusEl.className = "status-indicator";
+    serverStatusEl.className = "status-indicator";
   }
 }
 

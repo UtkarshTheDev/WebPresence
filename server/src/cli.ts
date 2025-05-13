@@ -17,6 +17,7 @@ import {
   togglePresence,
   updatePreferences,
   config,
+  checkPortInUse,
 } from "./index.js";
 import fs from "fs";
 import path, { join, dirname } from "path";
@@ -26,14 +27,10 @@ import { spawn, execSync } from "child_process";
 import { StartOptions, ToggleOptions, ConfigOptions } from "./types/cli.js";
 import { logger } from "./utils/logger.js";
 import {
-  startDaemon,
-  stopDaemon,
   isDaemonRunning,
   getDaemonPid,
   getDaemonLogPath,
 } from "./utils/daemon.js";
-// For TypeScript type definitions
-import type { Response } from "node-fetch";
 
 // Get package.json for version info
 const __filename = fileURLToPath(import.meta.url);
@@ -52,7 +49,7 @@ program
   )
   .version(packageJson.version)
   .option("-v, --verbose", "Enable verbose output")
-  .hook("preAction", (thisCommand, actionCommand) => {
+  .hook("preAction", (_, actionCommand) => {
     // Set verbosity based on command line option
     const options = actionCommand.opts();
     if (options.verbose) {
@@ -664,7 +661,43 @@ program
 
       // Presence status
       process.stdout.write(chalk.blue("Presence enabled: "));
-      if (status.presenceEnabled) {
+
+      // Try to get more accurate presence status from API
+      let presenceEnabled = status.presenceEnabled;
+
+      // If we have API access, try to get the actual presence state
+      if (portInUse) {
+        try {
+          const { default: fetch } = await import("node-fetch");
+          const serverPort = config.getServer().port;
+
+          // Use AbortController for timeout instead of timeout option
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+          try {
+            const response = await fetch(
+              `http://localhost:${serverPort}/api/status`,
+              {
+                signal: controller.signal,
+              }
+            );
+
+            if (response.ok) {
+              const apiStatus = (await response.json()) as {
+                presenceEnabled: boolean;
+              };
+              presenceEnabled = apiStatus.presenceEnabled;
+            }
+          } finally {
+            clearTimeout(timeoutId);
+          }
+        } catch (e) {
+          // Ignore API errors and use the status we already have
+        }
+      }
+
+      if (presenceEnabled) {
         console.log(chalk.green("Yes"));
 
         // If presence is enabled but Discord shows as not connected,
@@ -877,16 +910,39 @@ program
         `[${new Date().toISOString()}] Daemon child process started\n`
       );
 
-      // Check if server is already running to prevent multiple listen calls
-      if (isServerRunning()) {
+      // Do a thorough check if server is already running
+      // Check both the port and the internal state
+      const portInUse = await checkPortInUse(config.getServer().port);
+      const serverRunning = isServerRunning({ checkPort: true });
+
+      if (portInUse || serverRunning) {
         fs.appendFileSync(
           logFile,
-          `[${new Date().toISOString()}] Server is already running, not starting again\n`
+          `[${new Date().toISOString()}] Server is already running or port is in use, not starting again\n`
         );
+
+        // Keep the process alive but don't start another server
+        logger.info(
+          "Server is already running, daemon will monitor the existing server"
+        );
+
+        // Set up process signal handlers to ensure clean shutdown
+        process.on("SIGINT", async () => {
+          logger.info("Received SIGINT signal, shutting down gracefully...");
+          await stopServer();
+          process.exit(0);
+        });
+
+        process.on("SIGTERM", async () => {
+          logger.info("Received SIGTERM signal, shutting down gracefully...");
+          await stopServer();
+          process.exit(0);
+        });
+
         return;
       }
 
-      // Start the server directly
+      // Start the server directly with a flag to prevent auto-initialization
       // We don't need to skip Discord initialization in the daemon child process
       // as this is the only process that should be connecting to Discord
       const result = await startServer();

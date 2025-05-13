@@ -8,6 +8,7 @@ let rpc: DiscordRPC.Client | null = null;
 let rpcConnected = false;
 let rpcReady = false;
 let reconnectTimeout: NodeJS.Timeout | null = null;
+let connectionInProgress = false; // Flag to prevent multiple simultaneous connection attempts
 
 // Store the initial timestamp for continuous timer
 let initialTimestamp: number | null = null;
@@ -19,11 +20,22 @@ let initialTimestamp: number | null = null;
  * It includes robust error handling and automatic reconnection logic.
  */
 async function connectToDiscord() {
+  // Prevent multiple simultaneous connection attempts
+  if (connectionInProgress) {
+    logger.info(
+      "Discord connection already in progress, skipping duplicate attempt"
+    );
+    return false;
+  }
+
   // Clear any existing reconnect timeout
   if (reconnectTimeout) {
     clearTimeout(reconnectTimeout);
     reconnectTimeout = null;
   }
+
+  // Set the connection in progress flag
+  connectionInProgress = true;
 
   const discordConfig = config.getDiscord();
   const maxReconnectAttempts = discordConfig.maxReconnectAttempts || 10;
@@ -106,11 +118,32 @@ async function connectToDiscord() {
 
     // Login to Discord RPC
     logger.info("Logging in with client ID:", discordConfig.clientId);
-    await rpc.login({ clientId: discordConfig.clientId }).catch((error) => {
-      // This catch is to handle any promise rejection from login
-      // The outer try/catch will still handle this error
-      throw error;
-    });
+    try {
+      await rpc.login({ clientId: discordConfig.clientId });
+    } catch (error) {
+      // Handle login errors explicitly
+      logger.error("Discord login failed:", { error });
+
+      // Reset connection state
+      connectionInProgress = false;
+      rpcConnected = false;
+      rpcReady = false;
+
+      // Schedule reconnection
+      const delay = Math.min(
+        30000,
+        Math.pow(2, Math.min(discordConfig.reconnectAttempts, 5)) * 1000
+      );
+
+      logger.info(
+        `Will attempt to reconnect in ${delay / 1000} seconds (attempt ${
+          discordConfig.reconnectAttempts
+        } of ${maxReconnectAttempts})`
+      );
+
+      reconnectTimeout = setTimeout(connectToDiscord, delay);
+      return false;
+    }
   } catch (error: any) {
     logger.error("❌ Failed to connect to Discord:", {
       error: error.message,
@@ -140,6 +173,7 @@ async function connectToDiscord() {
 
     rpcConnected = false;
     rpcReady = false;
+    connectionInProgress = false; // Reset the connection in progress flag
 
     // Check if we've exceeded the maximum reconnect attempts
     discordConfig.reconnectAttempts++;
@@ -150,7 +184,7 @@ async function connectToDiscord() {
       // Reset counter but keep trying with a longer delay
       discordConfig.reconnectAttempts = 1;
       reconnectTimeout = setTimeout(connectToDiscord, 60000);
-      return;
+      return false;
     }
 
     // Retry connection with increasing delay
@@ -164,7 +198,12 @@ async function connectToDiscord() {
       } of ${maxReconnectAttempts})`
     );
     reconnectTimeout = setTimeout(connectToDiscord, delay);
+    return false;
   }
+
+  // If we get here, the connection was successful
+  connectionInProgress = false;
+  return true;
 }
 
 /**

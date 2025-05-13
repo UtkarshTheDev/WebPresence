@@ -2,8 +2,9 @@ import express from "express";
 import http from "http";
 import cors from "cors";
 import { execSync } from "child_process";
+import net from "net";
 import { discord } from "./services/discord.js";
-import { initWebSocketServer } from "./services/websocket.js";
+import { initWebSocketServer, getPresenceState } from "./services/websocket.js";
 import { config } from "./config/index.js";
 import { initRoutes } from "./routes/index.js";
 import { logger } from "./utils/logger.js";
@@ -19,6 +20,44 @@ import { logger } from "./utils/logger.js";
 let server: http.Server | null = null;
 let wss: any = null;
 let isRunning = false;
+
+/**
+ * Check if a port is in use
+ * @param port The port to check
+ * @returns A promise that resolves to true if the port is in use, false otherwise
+ */
+async function checkPortInUse(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    let timeoutId: NodeJS.Timeout;
+
+    // Set up a timeout to handle connection failures
+    timeoutId = setTimeout(() => {
+      socket.destroy();
+      resolve(false);
+    }, 500);
+
+    // Try to connect to the port
+    socket.once("connect", () => {
+      clearTimeout(timeoutId);
+      socket.destroy();
+      resolve(true);
+    });
+
+    socket.once("error", (err) => {
+      clearTimeout(timeoutId);
+      if ((err as any).code === "ECONNREFUSED") {
+        // Port is not in use
+        resolve(false);
+      } else {
+        // Other error, assume port is in use to be safe
+        resolve(true);
+      }
+    });
+
+    socket.connect(port, "127.0.0.1");
+  });
+}
 
 /**
  * Initialize global error handlers to prevent crashes
@@ -67,15 +106,24 @@ export async function startServer(options?: {
     return { success: true, port: config.getServer().port };
   }
 
+  // Override port if provided
+  if (options?.port) {
+    config.getServer().port = options.port;
+  }
+
+  // Check if port is already in use before attempting to start
+  const PORT = config.getServer().port;
+  const portInUse = await checkPortInUse(PORT);
+
+  if (portInUse) {
+    logger.error(`Port ${PORT} is already in use. Cannot start server.`);
+    return { success: false, port: PORT, error: "PORT_IN_USE" };
+  }
+
   // Setup error handlers
   setupErrorHandlers();
 
   try {
-    // Override port if provided
-    if (options?.port) {
-      config.getServer().port = options.port;
-    }
-
     // Initialize Express app
     const app = express();
     app.use(cors());
@@ -517,12 +565,31 @@ export function getServerStatus(options?: {
     );
   }
 
+  // Get the actual presence state from the WebSocket service if the server is running
+  let presenceState = {
+    enabled: false,
+    connected: false,
+    preferences: config.getUserPreferences(),
+  };
+
+  if (running) {
+    try {
+      presenceState = getPresenceState();
+    } catch (error) {
+      logger.warn("Error getting presence state from WebSocket service:", {
+        error,
+      });
+      // Fall back to default values if there's an error
+    }
+  }
+
   return {
     running: running || daemonRunning, // Consider the server running if either the server or daemon is running
     port: running || daemonRunning ? config.getServer().port : null,
-    discordConnected: discord.isConnected(),
-    presenceEnabled: running || daemonRunning ? true : false, // This will be updated with actual state in future
+    discordConnected: presenceState.connected || discord.isConnected(),
+    presenceEnabled: running || daemonRunning ? presenceState.enabled : false,
     daemonRunning: daemonRunning,
+    preferences: presenceState.preferences,
   };
 }
 
@@ -596,8 +663,12 @@ export async function updatePreferences(preferences: any) {
   }
 }
 
-// If this file is executed directly, start the server
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Only auto-start if not in daemon mode to prevent duplicate starts
+if (
+  import.meta.url === `file://${process.argv[1]}` &&
+  process.env.WEBPRESENCE_DAEMON_CHILD !== "true" &&
+  process.env.WEBPRESENCE_DAEMON !== "true"
+) {
   startServer().catch((error) => {
     logger.error("Failed to start server:", {
       error: error.message,
@@ -607,5 +678,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-// Export the config for external use
-export { config };
+// Export the config and utility functions for external use
+export { config, checkPortInUse };
