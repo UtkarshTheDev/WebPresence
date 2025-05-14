@@ -45,6 +45,9 @@ webpresence start
 # Start the server in daemon mode (background)
 webpresence start -d
 
+# Configure to start automatically on system boot
+webpresence autostart --enable
+
 # Check server status
 webpresence status
 

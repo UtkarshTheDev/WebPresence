@@ -41,6 +41,15 @@ export interface UpdateOptions {
 }
 
 /**
+ * Options for the autostart command
+ */
+export interface AutostartOptions {
+  enable?: boolean;
+  disable?: boolean;
+  status?: boolean;
+}
+
+/**
  * Result of a CLI command
  */
 export interface CommandResult {

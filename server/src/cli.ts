@@ -24,7 +24,12 @@ import path, { join, dirname } from "path";
 import os from "os";
 import { fileURLToPath } from "url";
 import { spawn, execSync } from "child_process";
-import { StartOptions, ToggleOptions, ConfigOptions } from "./types/cli.js";
+import {
+  StartOptions,
+  ToggleOptions,
+  ConfigOptions,
+  AutostartOptions,
+} from "./types/cli.js";
 import { logger } from "./utils/logger.js";
 import {
   isDaemonRunning,
@@ -36,6 +41,11 @@ import {
   updatePackage,
   displayUpdateNotification,
 } from "./utils/update-checker.js";
+import {
+  isAutostartEnabled,
+  enableAutostart,
+  disableAutostart,
+} from "./utils/autostart.js";
 
 // Get package.json for version info
 const __filename = fileURLToPath(import.meta.url);
@@ -1037,6 +1047,86 @@ program
       }
     } catch (error: any) {
       spinner.fail(`Error checking for updates: ${error.message}`);
+    }
+  });
+
+// Autostart command
+program
+  .command("autostart")
+  .description("Configure WebPresence to start automatically on system boot")
+  .option("--enable", "Enable autostart")
+  .option("--disable", "Disable autostart")
+  .option("--status", "Check autostart status")
+  .action(async (options: AutostartOptions) => {
+    // Default to status if no options provided
+    if (!options.enable && !options.disable && !options.status) {
+      options.status = true;
+    }
+
+    // Check status
+    if (options.status) {
+      const enabled = isAutostartEnabled();
+      console.log(chalk.bold("\nWebPresence Autostart Status:"));
+      process.stdout.write(chalk.blue("Autostart enabled: "));
+
+      if (enabled) {
+        console.log(chalk.green("Yes"));
+        console.log(
+          chalk.cyan("\nWebPresence will start automatically when you log in.")
+        );
+        console.log(chalk.cyan("To disable autostart, run:"));
+        console.log(chalk.cyan("  webpresence autostart --disable"));
+      } else {
+        console.log(chalk.yellow("No"));
+        console.log(
+          chalk.cyan(
+            "\nWebPresence will not start automatically when you log in."
+          )
+        );
+        console.log(chalk.cyan("To enable autostart, run:"));
+        console.log(chalk.cyan("  webpresence autostart --enable"));
+      }
+      return;
+    }
+
+    // Enable autostart
+    if (options.enable) {
+      const spinner = ora("Enabling autostart...").start();
+
+      try {
+        const result = await enableAutostart();
+
+        if (result.success) {
+          spinner.succeed("Autostart enabled");
+          console.log(chalk.green(`\n✓ ${result.message}`));
+        } else {
+          spinner.fail("Failed to enable autostart");
+          console.log(chalk.red(`\n✗ ${result.message}`));
+        }
+      } catch (error: any) {
+        spinner.fail(`Error enabling autostart: ${error.message}`);
+      }
+      return;
+    }
+
+    // Disable autostart
+    if (options.disable) {
+      const spinner = ora("Disabling autostart...").start();
+
+      try {
+        const result = await disableAutostart();
+
+        if (result.success) {
+          spinner.succeed("Autostart disabled");
+          console.log(chalk.green(`\n✓ ${result.message}`));
+        } else {
+          spinner.fail("Failed to disable autostart");
+          console.log(chalk.red(`\n✗ ${result.message}`));
+        }
+      } catch (error: any) {
+        spinner.fail(`Error disabling autostart: ${error.message}`);
+      }
+      return;
     }
   });
 

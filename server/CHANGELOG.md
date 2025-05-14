@@ -2,6 +2,20 @@
 
 All notable changes to the WebPresence package will be documented in this file.
 
+## [2.2.0] - 2025-04-18
+
+### Added
+
+- Autostart feature to configure WebPresence to start automatically on system boot
+- New `autostart` command with options to enable, disable, and check status
+- OS-specific autostart implementations for Windows, macOS, and Linux
+- Detailed documentation for autostart configuration in docs/AUTOSTART.md
+
+### Changed
+
+- Updated welcome page to include autostart configuration information
+- Improved documentation with autostart setup instructions
+
 ## [2.1.0] - 2025-04-15
 
 ### Added

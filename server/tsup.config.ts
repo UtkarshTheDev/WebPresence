@@ -6,6 +6,7 @@ export default defineConfig({
     "src/api.ts",
     "src/cli.ts",
     "src/utils/daemon.ts",
+    "src/utils/autostart.ts", // Add autostart utilities
     "src/daemon.ts", // Add standalone daemon script
   ],
   format: ["esm"],
