@@ -165,6 +165,7 @@ git clone https://github.com/utkarshthedev/webpresence.git
 </td>
 <td width="40%">
 <img src="screenshots/installation/extension_install.png" alt="Extension Installation" width="120%">
+<img src="screenshots/installation/install_extension.png" alt="Extension Opening" width="120%">
 </td>
 </tr>
 </table>
