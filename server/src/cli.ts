@@ -1023,9 +1023,20 @@ program
         const updateResult = await updatePackage();
 
         if (updateResult.success) {
+          // Show the actual version change if available
+          const fromVersion = updateResult.fromVersion || currentVersion;
+          const toVersion = updateResult.toVersion || latestVersion;
+
           console.log(
-            chalk.green("\n✓ WebPresence has been updated successfully!")
+            chalk.green(`\n✓ WebPresence has been updated successfully!`)
           );
+
+          if (fromVersion !== toVersion) {
+            console.log(
+              chalk.green(`  Updated from v${fromVersion} to v${toVersion}`)
+            );
+          }
+
           console.log(
             chalk.cyan(
               "\nPlease run your command again to use the updated version."
@@ -1047,6 +1058,7 @@ program
       }
     } catch (error: any) {
       spinner.fail(`Error checking for updates: ${error.message}`);
+      console.log(chalk.red(`\n✗ Error details: ${error.message}`));
     }
   });
 
@@ -1220,13 +1232,44 @@ async function checkForUpdateBeforeCommand() {
       return;
     }
 
-    const { hasUpdate, currentVersion, latestVersion } =
-      await checkForUpdates();
+    // Skip update check if running in a CI environment
+    if (process.env.CI === "true") {
+      return;
+    }
+
+    // Add a small delay to avoid blocking the CLI startup
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Check for updates with a timeout to avoid hanging
+    const updateCheckPromise = checkForUpdates();
+
+    // Set a timeout to avoid hanging if the update check takes too long
+    const timeoutPromise = new Promise<{
+      hasUpdate: boolean;
+      currentVersion: string;
+      latestVersion: string;
+    }>((resolve) => {
+      setTimeout(() => {
+        resolve({
+          hasUpdate: false,
+          currentVersion: packageJson.version,
+          latestVersion: packageJson.version,
+        });
+      }, 3000); // 3 second timeout
+    });
+
+    // Race the update check against the timeout
+    const { hasUpdate, currentVersion, latestVersion } = await Promise.race([
+      updateCheckPromise,
+      timeoutPromise,
+    ]);
 
     if (hasUpdate) {
       displayUpdateNotification(currentVersion, latestVersion);
     }
-  } catch (error) {
+  } catch (error: any) {
+    // Log the error in debug mode but don't show to user
+    logger.debug(`Error checking for updates: ${error.message}`);
     // Silently fail - don't prevent command execution if update check fails
   }
 }
