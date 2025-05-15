@@ -1,20 +1,52 @@
-# WebPresence
+# 🌐 WebPresence
 
-Discord Rich Presence for websites - Show your browsing activity in Discord.
+<div align="center">
+  <img src="../client/chrome/icons/icon128.png" alt="WebPresence Logo" width="100">
 
-## Installation
+  <h2>Discord Rich Presence for Websites</h2>
 
-### As a Package
+  <p>
+    <b>Show your browsing activity in Discord with custom icons for popular websites</b>
+  </p>
+
+  <p>
+    <a href="#-installation">Installation</a> •
+    <a href="#-usage">Usage</a> •
+    <a href="#-features">Features</a> •
+    <a href="#-api-reference">API Reference</a> •
+    <a href="#-development">Development</a>
+  </p>
+</div>
+
+## ✨ What is WebPresence?
+
+WebPresence is a Node.js package that connects your browser to Discord, showing your current website in your Discord profile. When you browse websites like YouTube, GitHub, or Twitter, your Discord profile displays what you're doing with custom icons for each site.
+
+<div align="center">
+  <img src="../screenshots/discord_profile_example.png" alt="Discord Profile Example" width="500">
+</div>
+
+## 🚀 Installation
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (version 16 or higher)
+- Discord desktop application
+
+### Option 1: Install as a Package (Recommended)
 
 ```bash
 # Install globally
 npm install -g webpresence
 
-# Or install locally in your project
-npm install webpresence
+# Start the server
+webpresence start
+
+# Or start in daemon mode (runs in background)
+webpresence start -d
 ```
 
-### From Source
+### Option 2: Install from Source
 
 ```bash
 # Clone the repository
@@ -31,18 +63,17 @@ npm run build
 npm start
 ```
 
-## Usage
+## 🔧 Usage
 
-### As a CLI Tool
+### Command Line Interface (CLI)
+
+WebPresence comes with a powerful CLI that makes it easy to control the server:
 
 ```bash
-# Install globally
-npm install -g webpresence
-
 # Start the server
 webpresence start
 
-# Start the server in daemon mode (background)
+# Start in daemon mode (background)
 webpresence start -d
 
 # Configure to start automatically on system boot
@@ -61,14 +92,16 @@ webpresence config --prefix "Browsing"
 webpresence config --disable-site "example.com"
 webpresence config --always-show "github.com"
 
-# Stop the server (works for both normal and daemon mode)
+# Stop the server
 webpresence stop
 
 # Get help
 webpresence help
 ```
 
-### As a Module
+### Using as a JavaScript/TypeScript Module
+
+WebPresence can be imported and used in your own Node.js applications:
 
 ```javascript
 // ESM
@@ -94,7 +127,7 @@ await WebPresence.stopServer();
 
 ### TypeScript Support
 
-WebPresence includes TypeScript definitions for all exported functions and types:
+WebPresence includes full TypeScript definitions:
 
 ```typescript
 import WebPresence, { UserPreferences, ServerConfig } from "webpresence";
@@ -110,20 +143,11 @@ const preferences: UserPreferences = {
 const result = await WebPresence.updatePreferences(preferences);
 ```
 
-## API Reference
-
-### Core Functions
-
-- `startServer(options?: { port?: number })` - Start the WebPresence server
-- `stopServer()` - Stop the WebPresence server
-- `isServerRunning()` - Check if the server is running
-- `getServerStatus()` - Get current server status
-- `togglePresence(enabled?: boolean)` - Enable or disable Discord presence
-- `updatePreferences(preferences: UserPreferences)` - Update user preferences
+## 🌟 Features
 
 ### Daemon Mode
 
-WebPresence can run as a background daemon process, allowing you to close the terminal while keeping the server running:
+Run WebPresence in the background without keeping a terminal window open:
 
 ```bash
 # Start in daemon mode
@@ -136,18 +160,29 @@ webpresence status
 webpresence stop
 ```
 
-The daemon process creates the following files in your home directory:
+The daemon creates these files in your home directory:
 
-- `~/.webpresence/webpresence.pid` - Contains the process ID of the daemon
+- `~/.webpresence/webpresence.pid` - Process ID of the daemon
 - `~/.webpresence/webpresence.log` - Log file for daemon output
 
-## Changelog
+### Autostart Configuration
 
-See [CHANGELOG.md](CHANGELOG.md) for a detailed list of changes in each version.
+Configure WebPresence to start automatically when your computer boots:
 
-### Configuration
+```bash
+# Enable autostart
+webpresence autostart --enable
 
-Access and modify configuration through the `config` object:
+# Disable autostart
+webpresence autostart --disable
+
+# Check autostart status
+webpresence autostart --status
+```
+
+### Configuration Management
+
+Access and modify configuration through the API:
 
 ```javascript
 import { config } from "webpresence";
@@ -164,7 +199,29 @@ config.updateUserPreferences({
 });
 ```
 
-## Project Structure
+## 📚 API Reference
+
+### Core Functions
+
+| Function                                          | Description                        |
+| ------------------------------------------------- | ---------------------------------- |
+| `startServer(options?: { port?: number })`        | Start the WebPresence server       |
+| `stopServer()`                                    | Stop the WebPresence server        |
+| `isServerRunning()`                               | Check if the server is running     |
+| `getServerStatus()`                               | Get current server status          |
+| `togglePresence(enabled?: boolean)`               | Enable or disable Discord presence |
+| `updatePreferences(preferences: UserPreferences)` | Update user preferences            |
+
+### Configuration API
+
+| Function                              | Description               |
+| ------------------------------------- | ------------------------- |
+| `config.getServer()`                  | Get server configuration  |
+| `config.getDiscord()`                 | Get Discord configuration |
+| `config.getUserPreferences()`         | Get user preferences      |
+| `config.updateUserPreferences(prefs)` | Update user preferences   |
+
+## 📁 Project Structure
 
 ```
 src/
@@ -177,16 +234,41 @@ src/
 └── utils/                    # Utility functions
 ```
 
-## Development
+## 👨‍💻 Development
 
-To run in development mode with auto-reload:
+### Running in Development Mode
 
 ```bash
+# Run with auto-reload
 npm run dev
 ```
 
-To build the package:
+### Building the Package
 
 ```bash
+# Build for production
 npm run build
 ```
+
+### Testing
+
+```bash
+# Run tests
+npm test
+```
+
+## 📝 Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed list of changes in each version.
+
+## 🤝 Contributing
+
+Contributions are welcome! See the [Contributing Guide](../CONTRIBUTING.md) for more information.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
+
+## 👤 Author
+
+Made with ❤️ by [Utkarsh Tiwari](https://github.com/utkarshthedev)
