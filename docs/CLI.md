@@ -137,7 +137,7 @@ webpresence stop
 webpresence start -d
 ```
 
-### Autostart Configuration
+### Autostart Configuration (BETA)
 
 You can configure Web Presence to start automatically when your computer boots up. This ensures Discord presence is always available without manual intervention.
 
@@ -152,15 +152,32 @@ webpresence autostart --enable
 webpresence autostart --disable
 ```
 
+#### Linux-Specific Options
+
+On Linux, you can choose between different autostart methods:
+
+```bash
+# Enable autostart using systemd (recommended for Arch Linux)
+webpresence autostart --enable --method=systemd
+
+# Enable autostart using XDG autostart
+webpresence autostart --enable --method=xdg
+
+# Disable a specific method
+webpresence autostart --disable --method=systemd
+```
+
 #### How Autostart Works
 
 When you enable autostart, Web Presence creates the appropriate configuration for your operating system:
 
 - **Windows**: Creates a task in Windows Task Scheduler
 - **macOS**: Creates a LaunchAgent in `~/Library/LaunchAgents`
-- **Linux**: Creates a desktop entry in `~/.config/autostart`
+- **Linux**: Uses one of two methods:
+  - **systemd**: Creates a user service in `~/.config/systemd/user/` (recommended for Arch Linux)
+  - **XDG autostart**: Creates a desktop entry in `~/.config/autostart`
 
-The autostart configuration will launch Web Presence in daemon mode when you log in to your computer.
+For more details, see the [Autostart Configuration](./AUTOSTART.md) guide.
 
 #### How Daemon Mode Works
 

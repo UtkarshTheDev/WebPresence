@@ -2,19 +2,30 @@
 
 All notable changes to the WebPresence package will be documented in this file.
 
-## [2.2.0] - 2025-04-18
+## [2.2.0] - 2025-05-15
 
 ### Added
 
 - Autostart feature to configure WebPresence to start automatically on system boot
 - New `autostart` command with options to enable, disable, and check status
 - OS-specific autostart implementations for Windows, macOS, and Linux
-- Detailed documentation for autostart configuration in docs/AUTOSTART.md
+- Multi-method autostart support for Linux with systemd and XDG options
+- New `--method` option for the autostart command to select between methods
+- Automatic detection of the best autostart method for different Linux distributions
 
 ### Changed
 
-- Updated welcome page to include autostart configuration information
-- Improved documentation with autostart setup instructions
+- Marked autostart feature as BETA in documentation and CLI
+- Improved autostart documentation with method-specific instructions
+- Enhanced Linux distribution detection for better autostart method selection
+- Updated CLI output to show more detailed autostart status information
+
+### Fixed
+
+- Linux autostart reliability issues
+- Added robust startup script for Linux with proper environment setup
+- Improved Discord detection and startup timing on Linux
+- Enhanced compatibility with various Linux desktop environments
 
 ## [2.1.0] - 2025-04-15
 

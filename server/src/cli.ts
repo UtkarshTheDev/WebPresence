@@ -1053,54 +1053,126 @@ program
 // Autostart command
 program
   .command("autostart")
-  .description("Configure WebPresence to start automatically on system boot")
+  .description(
+    "Configure WebPresence to start automatically on system boot (BETA)"
+  )
   .option("--enable", "Enable autostart")
   .option("--disable", "Disable autostart")
   .option("--status", "Check autostart status")
+  .option(
+    "--method <method>",
+    "Autostart method (auto, xdg, systemd) - Linux only",
+    "auto"
+  )
   .action(async (options: AutostartOptions) => {
     // Default to status if no options provided
     if (!options.enable && !options.disable && !options.status) {
       options.status = true;
     }
 
+    // Validate method option
+    if (
+      options.method &&
+      !["auto", "xdg", "systemd"].includes(options.method)
+    ) {
+      console.log(chalk.red(`\n✗ Invalid method: ${options.method}`));
+      console.log(chalk.yellow("Valid methods are: auto, xdg, systemd"));
+      return;
+    }
+
     // Check status
     if (options.status) {
-      const enabled = isAutostartEnabled();
-      console.log(chalk.bold("\nWebPresence Autostart Status:"));
-      process.stdout.write(chalk.blue("Autostart enabled: "));
+      const platform = process.platform;
+      console.log(chalk.bold("\nWebPresence Autostart Status (BETA):"));
 
-      if (enabled) {
-        console.log(chalk.green("Yes"));
+      if (platform === "linux") {
+        // For Linux, check both methods
+        const systemdEnabled = isAutostartEnabled("systemd");
+        const xdgEnabled = isAutostartEnabled("xdg");
+
+        process.stdout.write(chalk.blue("Platform: "));
+        console.log(chalk.cyan(`Linux`));
+
+        process.stdout.write(chalk.blue("systemd autostart: "));
         console.log(
-          chalk.cyan("\nWebPresence will start automatically when you log in.")
+          systemdEnabled ? chalk.green("Enabled") : chalk.yellow("Disabled")
         );
-        console.log(chalk.cyan("To disable autostart, run:"));
-        console.log(chalk.cyan("  webpresence autostart --disable"));
+
+        process.stdout.write(chalk.blue("XDG autostart: "));
+        console.log(
+          xdgEnabled ? chalk.green("Enabled") : chalk.yellow("Disabled")
+        );
+
+        const enabled = systemdEnabled || xdgEnabled;
+
+        if (enabled) {
+          console.log(
+            chalk.cyan(
+              "\nWebPresence will start automatically when you log in."
+            )
+          );
+          console.log(chalk.cyan("To disable autostart, run:"));
+          console.log(chalk.cyan("  webpresence autostart --disable"));
+        } else {
+          console.log(
+            chalk.cyan(
+              "\nWebPresence will not start automatically when you log in."
+            )
+          );
+          console.log(chalk.cyan("To enable autostart, run:"));
+          console.log(chalk.cyan("  webpresence autostart --enable"));
+          console.log(
+            chalk.cyan("\nFor Arch Linux, we recommend using systemd:")
+          );
+          console.log(
+            chalk.cyan("  webpresence autostart --enable --method=systemd")
+          );
+        }
       } else {
-        console.log(chalk.yellow("No"));
-        console.log(
-          chalk.cyan(
-            "\nWebPresence will not start automatically when you log in."
-          )
-        );
-        console.log(chalk.cyan("To enable autostart, run:"));
-        console.log(chalk.cyan("  webpresence autostart --enable"));
+        // For other platforms, just check if enabled
+        const enabled = isAutostartEnabled();
+
+        process.stdout.write(chalk.blue("Platform: "));
+        console.log(chalk.cyan(platform === "win32" ? "Windows" : "macOS"));
+
+        process.stdout.write(chalk.blue("Autostart enabled: "));
+        console.log(enabled ? chalk.green("Yes") : chalk.yellow("No"));
+
+        if (enabled) {
+          console.log(
+            chalk.cyan(
+              "\nWebPresence will start automatically when you log in."
+            )
+          );
+          console.log(chalk.cyan("To disable autostart, run:"));
+          console.log(chalk.cyan("  webpresence autostart --disable"));
+        } else {
+          console.log(
+            chalk.cyan(
+              "\nWebPresence will not start automatically when you log in."
+            )
+          );
+          console.log(chalk.cyan("To enable autostart, run:"));
+          console.log(chalk.cyan("  webpresence autostart --enable"));
+        }
       }
       return;
     }
 
     // Enable autostart
     if (options.enable) {
-      const spinner = ora("Enabling autostart...").start();
+      const methodText =
+        options.method !== "auto" ? ` using ${options.method} method` : "";
+      const spinner = ora(`Enabling autostart${methodText}...`).start();
 
       try {
-        const result = await enableAutostart();
+        const result = await enableAutostart(options.method);
 
         if (result.success) {
-          spinner.succeed("Autostart enabled");
+          spinner.succeed(`Autostart enabled${methodText}`);
           console.log(chalk.green(`\n✓ ${result.message}`));
         } else {
-          spinner.fail("Failed to enable autostart");
+          spinner.fail(`Failed to enable autostart${methodText}`);
           console.log(chalk.red(`\n✗ ${result.message}`));
         }
       } catch (error: any) {
@@ -1111,16 +1183,18 @@ program
 
     // Disable autostart
     if (options.disable) {
-      const spinner = ora("Disabling autostart...").start();
+      const methodText =
+        options.method !== "auto" ? ` (${options.method} method)` : "";
+      const spinner = ora(`Disabling autostart${methodText}...`).start();
 
       try {
-        const result = await disableAutostart();
+        const result = await disableAutostart(options.method);
 
         if (result.success) {
-          spinner.succeed("Autostart disabled");
+          spinner.succeed(`Autostart disabled${methodText}`);
           console.log(chalk.green(`\n✓ ${result.message}`));
         } else {
-          spinner.fail("Failed to disable autostart");
+          spinner.fail(`Failed to disable autostart${methodText}`);
           console.log(chalk.red(`\n✗ ${result.message}`));
         }
       } catch (error: any) {

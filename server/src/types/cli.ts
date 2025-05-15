@@ -47,6 +47,7 @@ export interface AutostartOptions {
   enable?: boolean;
   disable?: boolean;
   status?: boolean;
+  method?: "auto" | "xdg" | "systemd";
 }
 
 /**

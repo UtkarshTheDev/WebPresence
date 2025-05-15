@@ -1,13 +1,15 @@
-# Autostart Configuration
+# Autostart Configuration (BETA)
 
 This guide explains how to configure Web Presence to start automatically when your computer boots up, ensuring Discord presence is always available without manual intervention.
+
+> **Note**: The autostart feature is currently in BETA. While it works well on most systems, you may encounter issues on some configurations. Please report any problems you encounter.
 
 ## Quick Setup
 
 The easiest way to enable autostart is using the CLI command:
 
 ```bash
-# Enable autostart
+# Enable autostart (uses the best method for your system)
 webpresence autostart --enable
 
 # Check autostart status
@@ -17,15 +19,41 @@ webpresence autostart
 webpresence autostart --disable
 ```
 
+### Linux-Specific Options
+
+On Linux, you can choose between different autostart methods:
+
+```bash
+# Enable autostart using systemd (recommended for Arch Linux)
+webpresence autostart --enable --method=systemd
+
+# Enable autostart using XDG autostart
+webpresence autostart --enable --method=xdg
+
+# Disable a specific method
+webpresence autostart --disable --method=systemd
+```
+
 ## How It Works
 
 When you enable autostart, Web Presence creates the appropriate configuration for your operating system:
 
 - **Windows**: Creates a task in Windows Task Scheduler
 - **macOS**: Creates a LaunchAgent in `~/Library/LaunchAgents`
-- **Linux**: Creates a desktop entry in `~/.config/autostart`
+- **Linux**: Uses one of two methods:
+  - **systemd**: Creates a user service in `~/.config/systemd/user/` (recommended for Arch Linux)
+  - **XDG autostart**: Creates a desktop entry in `~/.config/autostart`
 
-The autostart configuration will launch Web Presence in daemon mode when you log in to your computer.
+The autostart configuration will launch Web Presence when you log in to your computer.
+
+### Automatic Method Selection
+
+On Linux, Web Presence automatically selects the best method for your distribution:
+
+- For Arch Linux and other systemd-based distributions, it uses systemd user services
+- For other distributions, it uses XDG autostart
+
+You can override this selection with the `--method` option.
 
 ## OS-Specific Details
 
@@ -96,33 +124,141 @@ launchctl load ~/Library/LaunchAgents/com.utkarsh.webpresence.plist
 
 ### Linux
 
-On Linux, Web Presence creates a desktop entry file in `~/.config/autostart/webpresence.desktop`.
+On Linux, Web Presence supports two autostart methods:
 
-#### Manual Setup (if CLI method fails)
+#### Method 1: systemd User Service (Recommended for Arch Linux)
 
-1. Create a file at `~/.config/autostart/webpresence.desktop` with the following content:
+This method creates a systemd user service that starts WebPresence when you log in.
+
+```bash
+# Enable with systemd method
+webpresence autostart --enable --method=systemd
+```
+
+The systemd service:
+
+- Is created at `~/.config/systemd/user/webpresence.service`
+- Automatically restarts if it crashes
+- Starts after the network and graphical session are ready
+- Includes proper environment variables for npm global binaries
+
+##### Manual Setup (if CLI method fails)
+
+1. Create a systemd user service file at `~/.config/systemd/user/webpresence.service`:
+
+```ini
+[Unit]
+Description=WebPresence Discord Rich Presence Server
+After=network.target graphical-session.target
+
+[Service]
+ExecStart=/home/YOUR_USERNAME/.npm-global/bin/webpresence start
+Restart=on-failure
+RestartSec=10
+Environment=PATH=/home/YOUR_USERNAME/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
+
+[Install]
+WantedBy=default.target
+```
+
+2. Enable and start the service:
+
+```bash
+systemctl --user daemon-reload
+systemctl --user enable webpresence.service
+systemctl --user start webpresence.service
+```
+
+##### Troubleshooting systemd
+
+- Check service status: `systemctl --user status webpresence.service`
+- View logs: `journalctl --user -u webpresence.service -f`
+- Verify the path to `webpresence` is correct (use `which webpresence` to find it)
+- Make sure systemd user services are enabled: `loginctl enable-linger $USER`
+
+#### Method 2: XDG Autostart
+
+This method creates:
+
+1. A startup script at `~/.webpresence/startup.sh` that handles proper environment setup
+2. A desktop entry file at `~/.config/autostart/webpresence.desktop` that runs the startup script
+
+```bash
+# Enable with XDG method
+webpresence autostart --enable --method=xdg
+```
+
+The startup script includes:
+
+- A delay to ensure the desktop environment is fully loaded
+- Path setup to find npm global binaries
+- Checks to ensure Discord is running
+- Detailed logging to `~/.webpresence/autostart.log`
+
+##### Manual Setup (if CLI method fails)
+
+1. Create a startup script at `~/.webpresence/startup.sh`:
+
+```bash
+#!/bin/bash
+# Wait for desktop environment to fully load
+sleep 10
+
+# Ensure PATH includes npm global bin directories
+export PATH="$PATH:$HOME/.npm-global/bin:/usr/local/bin:$HOME/.local/bin"
+
+# Log startup attempt
+echo "[$(date)] Starting WebPresence..." >> "$HOME/.webpresence/autostart.log"
+
+# Check if Discord is running
+if pgrep -x "Discord" > /dev/null || pgrep -x "discord" > /dev/null; then
+    echo "[$(date)] Discord is running, starting WebPresence..." >> "$HOME/.webpresence/autostart.log"
+else
+    echo "[$(date)] Discord is not running, waiting 30 seconds..." >> "$HOME/.webpresence/autostart.log"
+    sleep 30
+fi
+
+# Start WebPresence
+webpresence start -d >> "$HOME/.webpresence/autostart.log" 2>&1
+
+# Log completion
+echo "[$(date)] Startup script completed" >> "$HOME/.webpresence/autostart.log"
+```
+
+2. Make the script executable:
+
+```bash
+chmod +x ~/.webpresence/startup.sh
+```
+
+3. Create a desktop entry at `~/.config/autostart/webpresence.desktop`:
 
 ```
 [Desktop Entry]
 Type=Application
 Name=WebPresence
-Exec=webpresence start -d
+Exec=/home/YOUR_USERNAME/.webpresence/startup.sh
 Terminal=false
 X-GNOME-Autostart-enabled=true
+StartupNotify=false
+Hidden=false
+NoDisplay=false
 Comment=Discord Rich Presence for websites
 ```
 
-2. Make it executable:
+4. Make the desktop entry executable:
 
 ```bash
 chmod +x ~/.config/autostart/webpresence.desktop
 ```
 
-#### Troubleshooting
+##### Troubleshooting XDG Autostart
 
+- Check the log file at `~/.webpresence/autostart.log` for errors
 - Verify the path to `webpresence` is correct (use `which webpresence` to find it)
-- Check if your desktop environment supports XDG autostart
-- For non-GNOME environments, you may need to use your DE's specific autostart method
+- Make sure both the startup script and desktop entry are executable
+- For non-GNOME environments, check if your desktop environment supports XDG autostart
+- Try increasing the sleep time in the startup script if Discord isn't ready when WebPresence starts
 
 ## Verifying Autostart Works
 
@@ -138,10 +274,39 @@ You should see that the server is running and connected to Discord.
 
 ### Server Doesn't Start Automatically
 
+#### General Troubleshooting
+
 - Check if Discord is installed and running at startup
 - Verify that WebPresence is installed globally (`npm list -g webpresence`)
 - Check the logs in `~/.webpresence/webpresence.log`
 - Try running `webpresence start -d` manually to see if there are any errors
+
+#### Linux-Specific Issues
+
+For systemd method:
+
+- Check service status: `systemctl --user status webpresence.service`
+- View logs: `journalctl --user -u webpresence.service -f`
+- Make sure systemd user services are enabled: `loginctl enable-linger $USER`
+- Try manually starting the service: `systemctl --user start webpresence.service`
+
+For XDG autostart method:
+
+- Check the autostart log: `cat ~/.webpresence/autostart.log`
+- Verify that the startup script is executable: `ls -la ~/.webpresence/startup.sh`
+- Try running the startup script manually: `~/.webpresence/startup.sh`
+- Check if your desktop environment supports XDG autostart
+- Some desktop environments may need additional configuration:
+  - KDE: Try using KDE's System Settings > Startup and Shutdown > Autostart
+  - XFCE: Try using Session and Startup > Application Autostart
+  - i3/Sway: Add the startup script to your config file
+- If using Wayland, some autostart methods may behave differently
+
+For all methods:
+
+- Make sure npm's global bin directory is in your PATH
+- For Arch Linux, we recommend using the systemd method: `webpresence autostart --enable --method=systemd`
+- Try both methods to see which works best for your system
 
 ### Discord Connection Issues
 
