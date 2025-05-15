@@ -12,7 +12,7 @@ const defaultConfig = {
   // Server configuration
   server: {
     port: 8874,
-    activityTimeout: 45000, // 45 seconds timeout for client activity
+    activityTimeout: 180000, // 3 minutes timeout for client activity (4x the heartbeat interval)
     inactiveCheckInterval: 15000, // Check for inactive clients every 15 seconds
   },
 
