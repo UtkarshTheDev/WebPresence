@@ -250,31 +250,6 @@ Every contribution helps make Web Presence better!
 - [**API Documentation**](docs/API.md) - Server API reference
 - [**Server Package**](server/README.md) - WebPresence npm package details
 
-### Project Structure
-
-The codebase is organized into two main components:
-
-**Server** - Node.js application that connects to Discord
-
-- `server/src/` - Server source code
-- `server/config/` - Configuration files
-- `server/data/` - Site icons and assets
-
-**Client** - Browser extension that communicates with the server
-
-- `client/chrome/` - Chrome extension
-- `client/firefox/` - Firefox extension
-- `client/shared/` - Shared code between browsers
-
-### Development Workflow
-
-To set up a development environment:
-
-1. Clone the repository
-2. Install dependencies with `npm install`
-3. Run the server in dev mode with `npm run dev`
-4. Load the extension in your browser
-
 **Want to contribute?** Check out our [open issues](https://github.com/utkarshthedev/webpresence/issues) to find something to work on!
 
 ## Using Your Own Discord Application
