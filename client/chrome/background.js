@@ -151,11 +151,10 @@ function connectWebSocket() {
 
     // Handle connection close with reconnection logic
     websocket.onclose = (event) => {
-      const reason = event.reason || "No reason provided";
-      const code = event.code || "No code provided";
-      console.log(
-        `Disconnected from WebSocket server (Code: ${code}, Reason: ${reason})`
-      );
+      // Only log detailed close information in verbose mode
+      if (reconnectAttempts === 0) {
+        console.log("Waiting for server to become available...");
+      }
       connected = false;
 
       // Stop heartbeat
@@ -172,28 +171,32 @@ function connectWebSocket() {
           if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
             // After max attempts, use a consistent longer delay
             delay = MAX_RECONNECT_DELAY;
-            console.log(
-              `Maximum reconnection attempts (${MAX_RECONNECT_ATTEMPTS}) exceeded, using consistent delay`
-            );
+            // Only log every 10 attempts to reduce console spam
+            if (reconnectAttempts % 10 === 0) {
+              console.log(
+                `Still waiting for server to become available (attempt ${reconnectAttempts})...`
+              );
+            }
           } else {
             // Exponential backoff with maximum cap
             delay = Math.min(
               MAX_RECONNECT_DELAY,
               Math.pow(2, Math.min(reconnectAttempts, 10)) * 1000
             );
-          }
 
-          console.log(
-            `Attempting to reconnect (attempt ${reconnectAttempts}) in ${
-              delay / 1000
-            } seconds...`
-          );
+            // Only log every 5 attempts to reduce console spam
+            if (reconnectAttempts % 5 === 0) {
+              console.log(
+                `Still waiting for server to become available (attempt ${reconnectAttempts})...`
+              );
+            }
+          }
 
           // Attempt reconnection
           try {
             connectWebSocket();
           } catch (reconnectError) {
-            console.error("Error during reconnection attempt:", reconnectError);
+            // Don't log every error, just continue silently
             // Continue with next attempt despite errors
           }
         }, Math.min(MAX_RECONNECT_DELAY, Math.pow(2, Math.min(reconnectAttempts, 10)) * 1000));
@@ -203,24 +206,27 @@ function connectWebSocket() {
     // Handle connection errors
     websocket.onerror = (error) => {
       lastError = error;
-      console.error("WebSocket connection error:", error);
+      console.warn("WebSocket connection waiting for server:", error);
       // The onclose handler will be called after this and handle reconnection
     };
   } catch (error) {
-    console.error("Failed to create WebSocket connection:", error);
+    console.warn("Waiting for server to become available...");
     connected = false;
 
     // Set up reconnection if not already in progress
     if (!reconnectInterval) {
       reconnectInterval = setInterval(() => {
         reconnectAttempts++;
-        console.log(
-          `Attempting to reconnect after error (attempt ${reconnectAttempts})...`
-        );
+        // Only log every 5 attempts to reduce console spam
+        if (reconnectAttempts % 5 === 0) {
+          console.log(
+            `Still waiting for server to become available (attempt ${reconnectAttempts})...`
+          );
+        }
         try {
           connectWebSocket();
         } catch (reconnectError) {
-          console.error("Error during reconnection attempt:", reconnectError);
+          // Don't log every error, just continue silently
           // Continue with next attempt despite errors
         }
       }, Math.min(MAX_RECONNECT_DELAY, Math.pow(2, Math.min(reconnectAttempts, 10)) * 1000));
@@ -615,23 +621,21 @@ function startHeartbeat() {
   heartbeatInterval = setInterval(() => {
     if (websocket && websocket.readyState === WebSocket.OPEN) {
       try {
-        console.log("Sending heartbeat to server");
+        // Heartbeats should be silent to reduce console spam
         websocket.send(JSON.stringify({ type: "ping" }));
       } catch (error) {
-        console.error("Error sending heartbeat:", error);
+        // Don't log the error, just handle it silently
 
         // If there's a WebSocket error, it might need reconnection
         if (error.name === "InvalidStateError") {
-          console.log(
-            "WebSocket appears to be in an invalid state during heartbeat, reconnecting..."
-          );
+          console.log("Reconnecting to server...");
           connected = false;
 
           // Force reconnection
           try {
             websocket.close();
           } catch (closeError) {
-            console.warn("Error closing broken WebSocket:", closeError);
+            // Don't log the error, just continue
           }
 
           // Stop heartbeat as we're reconnecting
@@ -642,9 +646,7 @@ function startHeartbeat() {
         }
       }
     } else if (websocket && websocket.readyState === WebSocket.CLOSED) {
-      console.log(
-        "WebSocket closed during heartbeat interval, attempting to reconnect"
-      );
+      // Don't log every time, just handle it silently
       connected = false;
 
       // Stop heartbeat as we're reconnecting

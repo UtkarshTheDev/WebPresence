@@ -214,11 +214,11 @@ function connectWebSocket() {
     // Handle connection errors
     websocket.onerror = (error) => {
       lastError = error;
-      console.error("WebSocket connection error:", error);
+      console.warn("WebSocket connection waiting for server:", error);
       // The onclose handler will be called after this and handle reconnection
     };
   } catch (error) {
-    console.error("Failed to create WebSocket connection:", error);
+    console.warn("Waiting for server to become available...");
     connected = false;
 
     // Set up reconnection if not already in progress

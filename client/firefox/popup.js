@@ -124,9 +124,13 @@ async function checkDiscordConnection() {
       updateSiteLists();
     }
   } catch (error) {
-    console.warn("Unable to connect to server:", error);
+    // Don't log the error, just update the UI
     discordStatusEl.className = "status-indicator";
     serverStatusEl.className = "status-indicator";
+
+    // Add a tooltip to the status indicators to inform the user
+    serverStatusEl.title = "Waiting for server to become available...";
+    discordStatusEl.title = "Discord connection not available";
   }
 }
 
