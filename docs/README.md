@@ -5,6 +5,7 @@ Welcome to the Web Presence documentation! This guide will help you understand, 
 ## Documentation Sections
 
 - [Installation Guide](./INSTALLATION.md) - Step-by-step instructions for installing the extension and server
+- [Autostart Configuration](./AUTOSTART.md) - Configure to start automatically on system boot
 - [CLI Reference](./CLI.md) - Complete guide to using the command-line interface
 - [Troubleshooting](./TROUBLESHOOTING.md) - Solutions to common problems
 - [Contributing](../CONTRIBUTING.md) - How to contribute to the project

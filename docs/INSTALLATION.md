@@ -35,7 +35,13 @@ This is the easiest way to install Web Presence.
    webpresence start -d
    ```
 
-4. Check that the server is running:
+4. (Optional) Configure the server to start automatically on system boot:
+
+   ```bash
+   webpresence autostart --enable
+   ```
+
+5. Check that the server is running:
 
    ```bash
    webpresence status
@@ -46,6 +52,10 @@ This is the easiest way to install Web Presence.
    > **What is daemon mode?**
    >
    > Daemon mode (using the `-d` flag) runs the server in the background, so you can close your terminal window and the server will keep running. This is the recommended way to run Web Presence.
+   >
+   > **What is autostart?**
+   >
+   > Autostart configures Web Presence to start automatically when your computer boots up, ensuring Discord presence is always available without manual intervention. See the [Autostart Configuration](./AUTOSTART.md) guide for more details.
 
 ### Option B: From source code (For developers)
 

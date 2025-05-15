@@ -38,7 +38,7 @@ If you're comfortable with Git and want to add icons directly:
 1. Fork the repository on GitHub
 2. Clone your fork to your computer:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/webpresence.git
+   git clone https://github.com/UtkarshTheDev/webpresence.git
    cd webpresence
    ```
 
@@ -84,7 +84,7 @@ If you want to contribute code:
 ### Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/webpresence.git`
+2. Clone your fork: `git clone https://github.com/UtkarshTheDev/webpresence.git`
 3. Install dependencies: `cd server && npm install`
 4. Make your changes
 5. Test thoroughly

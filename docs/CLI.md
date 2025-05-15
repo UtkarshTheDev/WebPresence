@@ -4,15 +4,16 @@ Web Presence comes with a powerful command-line interface (CLI) that lets you co
 
 ## Basic Commands
 
-| Command              | Description                                             |
-| -------------------- | ------------------------------------------------------- |
-| `webpresence start`  | Start the Web Presence server                           |
-| `webpresence stop`   | Stop the server                                         |
-| `webpresence status` | Check if the server is running and connected to Discord |
-| `webpresence toggle` | Turn Discord presence on or off                         |
-| `webpresence config` | View or change configuration settings                   |
-| `webpresence update` | Check for and install package updates                   |
-| `webpresence help`   | Show help information                                   |
+| Command                 | Description                                             |
+| ----------------------- | ------------------------------------------------------- |
+| `webpresence start`     | Start the Web Presence server                           |
+| `webpresence stop`      | Stop the server                                         |
+| `webpresence status`    | Check if the server is running and connected to Discord |
+| `webpresence toggle`    | Turn Discord presence on or off                         |
+| `webpresence config`    | View or change configuration settings                   |
+| `webpresence autostart` | Configure automatic startup on system boot              |
+| `webpresence update`    | Check for and install package updates                   |
+| `webpresence help`      | Show help information                                   |
 
 ## Detailed Usage
 
@@ -135,6 +136,31 @@ webpresence stop
 webpresence stop
 webpresence start -d
 ```
+
+### Autostart Configuration
+
+You can configure Web Presence to start automatically when your computer boots up. This ensures Discord presence is always available without manual intervention.
+
+```bash
+# Check autostart status
+webpresence autostart
+
+# Enable autostart
+webpresence autostart --enable
+
+# Disable autostart
+webpresence autostart --disable
+```
+
+#### How Autostart Works
+
+When you enable autostart, Web Presence creates the appropriate configuration for your operating system:
+
+- **Windows**: Creates a task in Windows Task Scheduler
+- **macOS**: Creates a LaunchAgent in `~/Library/LaunchAgents`
+- **Linux**: Creates a desktop entry in `~/.config/autostart`
+
+The autostart configuration will launch Web Presence in daemon mode when you log in to your computer.
 
 #### How Daemon Mode Works
 
