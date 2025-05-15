@@ -2,7 +2,7 @@
 
 All notable changes to the WebPresence package will be documented in this file.
 
-## [2.2.0] - 2025-05-15
+## [3.0.0] - 2025-05-15
 
 ### Added
 
@@ -27,7 +27,7 @@ All notable changes to the WebPresence package will be documented in this file.
 - Improved Discord detection and startup timing on Linux
 - Enhanced compatibility with various Linux desktop environments
 
-## [2.1.0] - 2025-04-15
+## [2.1.0] - 2025-04-14
 
 ### Added
 
