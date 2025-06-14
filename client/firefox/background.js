@@ -13,6 +13,9 @@ const MAX_RECONNECT_DELAY = 60000; // Maximum delay between reconnection attempt
 let lastAlwaysEnabledSite = null; // Track the last always-enabled site
 let lastError = null; // Track the last error for debugging
 
+// Browser detection
+const BROWSER_NAME = "firefox"; // Firefox extension
+
 // User preferences
 let userPreferences = {
   prefixText: "Viewing",
@@ -409,6 +412,7 @@ function getAndSendTabInfo(tabId) {
               url: tab.url,
               faviconUrl: tab.favIconUrl || "",
               preferences: userPreferences, // Send user preferences with presence update
+              browser: BROWSER_NAME, // Send browser information
             };
 
             websocket.send(JSON.stringify(message));

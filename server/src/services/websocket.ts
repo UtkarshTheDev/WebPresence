@@ -89,7 +89,7 @@ export function initWebSocketServer(server: Server) {
         // Process message based on type
         switch (data.type) {
           case "presence": {
-            const { title, url } = data;
+            const { title, url, browser } = data;
             if (!title || !url) {
               logger.warn("Received presence update with missing data", {
                 data,
@@ -148,7 +148,7 @@ export function initWebSocketServer(server: Server) {
 
               // Set activity with error handling
               try {
-                const result = await discord.setActivity(title, url);
+                const result = await discord.setActivity(title, url, browser);
                 if (!result) {
                   logger.warn(`Failed to set activity for ${domain}`);
                 }

@@ -34,6 +34,33 @@ const defaultConfig = {
     largeImageKey: "web",
     smallImageKey: "me",
     smallImageText: "Utkarsh Tiwari",
+    // Browser-specific icons
+    browserIcons: {
+      chrome: {
+        iconKey: "chrome",
+        text: "Google Chrome",
+      },
+      firefox: {
+        iconKey: "firefox",
+        text: "Mozilla Firefox",
+      },
+      edge: {
+        iconKey: "edge",
+        text: "Microsoft Edge",
+      },
+      safari: {
+        iconKey: "safari",
+        text: "Safari",
+      },
+      opera: {
+        iconKey: "opera",
+        text: "Opera",
+      },
+      default: {
+        iconKey: "me",
+        text: "Utkarsh Tiwari",
+      },
+    },
   },
 };
 

@@ -210,7 +210,7 @@ async function connectToDiscord() {
  * This function updates the Discord Rich Presence with information about the current website.
  * It includes robust error handling and automatic reconnection if needed.
  */
-function setActivity(title: string, url: string) {
+function setActivity(title: string, url: string, browser?: string) {
   if (!rpcConnected || !rpcReady || !rpc) {
     logger.warn("Discord RPC not ready, cannot set activity");
     return false;
@@ -251,11 +251,20 @@ function setActivity(title: string, url: string) {
       );
     }
 
+    // Get browser-specific icon configuration
+    const browserIcon = browser && browser in presenceConfig.browserIcons
+      ? presenceConfig.browserIcons[browser as keyof typeof presenceConfig.browserIcons]
+      : presenceConfig.browserIcons.default;
+
     // Log which icon is being used
     if (siteIcon) {
       logger.info(`Using custom icon for ${domain}: ${siteIcon.iconKey}`);
     } else {
       logger.info(`Using default web icon for ${domain}`);
+    }
+
+    if (browser) {
+      logger.info(`Using browser icon for ${browser}: ${browserIcon.iconKey}`);
     }
 
     // Prepare activity data
@@ -275,9 +284,9 @@ function setActivity(title: string, url: string) {
       largeImageKey: siteIcon?.iconKey || presenceConfig.largeImageKey,
       largeImageText: displayDomain,
 
-      // Add small image (avatar)
-      smallImageKey: presenceConfig.smallImageKey,
-      smallImageText: presenceConfig.smallImageText,
+      // Add browser-specific small image
+      smallImageKey: browserIcon.iconKey,
+      smallImageText: browserIcon.text,
 
       // Add buttons
       buttons: presenceConfig.buttons,
