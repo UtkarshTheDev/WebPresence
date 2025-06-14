@@ -669,6 +669,11 @@ if (
   process.env.WEBPRESENCE_DAEMON_CHILD !== "true" &&
   process.env.WEBPRESENCE_DAEMON !== "true"
 ) {
+  // Enable verbose logging for development mode
+  logger.setVerbose(true);
+
+  logger.info("🚀 Starting WebPresence server in development mode...");
+
   startServer().catch((error) => {
     logger.error("Failed to start server:", {
       error: error.message,

@@ -28,8 +28,17 @@
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "build": "tsup",
+    "build:watch": "tsup --watch",
     "clean": "rimraf dist",
-    "prepublishOnly": "npm run clean && npm run build"
+    "test": "echo \"Tests coming soon\" && exit 0",
+    "link:dev": "npm run build && npm link",
+    "unlink:dev": "npm unlink",
+    "server:start": "webpresence start",
+    "server:daemon": "webpresence start -d",
+    "server:stop": "webpresence stop",
+    "server:status": "webpresence status",
+    "prepublishOnly": "npm run clean && npm run build",
+    "postinstall": "echo \"✅ WebPresence installed! Run 'webpresence start -d' to begin.\""
   },
   "keywords": [
     "discord",

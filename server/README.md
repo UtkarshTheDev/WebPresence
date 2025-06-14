@@ -236,26 +236,75 @@ src/
 
 ## 👨‍💻 Development
 
-### Running in Development Mode
+### Quick Development Setup
 
 ```bash
-# Run with auto-reload
+# Clone and setup
+git clone https://github.com/utkarshthedev/webpresence.git
+cd webpresence/server
+npm install
+
+# Start development server with hot reload
 npm run dev
 ```
 
-### Building the Package
+### Available Scripts
 
-```bash
-# Build for production
-npm run build
-```
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start development server with hot reload and verbose logging |
+| `npm run build` | Build for production |
+| `npm run build:watch` | Build with watch mode |
+| `npm run link:dev` | Build and link package locally for CLI testing |
+| `npm run unlink:dev` | Unlink local development package |
+| `npm run server:start` | Start server using CLI (after linking) |
+| `npm run server:daemon` | Start server in daemon mode |
+| `npm run server:status` | Check server status |
+
+### Local Development Workflow
+
+1. **CLI Testing** (Recommended):
+   ```bash
+   npm run link:dev     # Link package locally
+   webpresence start -d # Test CLI commands
+   webpresence status   # Verify functionality
+   npm run unlink:dev   # Unlink when done
+   ```
+
+2. **Development Mode** (For core development only):
+   ```bash
+   npm run dev  # Starts server with hot reload
+   ```
+
+**Why CLI testing is preferred:**
+- Tests the actual user experience
+- Validates complete package functionality
+- Ensures CLI commands work correctly
 
 ### Testing
 
 ```bash
-# Run tests
+# Run tests (coming soon)
 npm test
+
+# Manual testing (recommended method)
+npm run link:dev        # Link package locally
+webpresence start -d    # Start server via CLI
+webpresence status      # Test CLI commands
+# Load browser extension and test functionality
+npm run unlink:dev      # Unlink when done
 ```
+
+For comprehensive development instructions, see the [Developer Guide](../docs/DEVELOPER.md).
+
+## 📋 Developer Resources
+
+- [**Developer Guide**](../docs/DEVELOPER.md) - Complete development setup and workflow
+- [**API Documentation**](../docs/API.md) - REST API and WebSocket reference
+- [**Contributing Guide**](../CONTRIBUTING.md) - Detailed instructions for contributors
+- [**Site Icons Guide**](../docs/SITE_ICONS.md) - How to add new website icons
+- [**CLI Reference**](../docs/CLI.md) - All command-line options
+- [**All Documentation**](../docs/README.md) - Complete documentation index
 
 ## 📝 Changelog
 

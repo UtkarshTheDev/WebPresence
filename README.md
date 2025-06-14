@@ -198,7 +198,7 @@ git clone https://github.com/utkarshthedev/webpresence.git
 - [**Autostart Configuration**](docs/AUTOSTART.md) - Make Web Presence start automatically on boot
 - [**Troubleshooting**](docs/TROUBLESHOOTING.md) - Solutions to common problems
 - [**CLI Guide**](docs/CLI.md) - All command-line features explained
-- [**All Documentation**](docs/index.md) - Complete documentation index
+- [**All Documentation**](docs/README.md) - Complete documentation index
 
 Our comprehensive documentation helps you get the most out of Web Presence!
 
@@ -244,10 +244,11 @@ Every contribution helps make Web Presence better!
 
 ### 📋 Developer Resources
 
+- [**Developer Guide**](docs/DEVELOPER.md) - Complete development setup and workflow
+- [**API Documentation**](docs/API.md) - REST API and WebSocket reference
 - [**Contributing Guide**](CONTRIBUTING.md) - Detailed instructions for contributors
 - [**Site Icons Guide**](docs/SITE_ICONS.md) - How to add new website icons
 - [**CLI Reference**](docs/CLI.md) - All command-line options
-- [**API Documentation**](docs/API.md) - Server API reference
 - [**Server Package**](server/README.md) - WebPresence npm package details
 
 **Want to contribute?** Check out our [open issues](https://github.com/utkarshthedev/webpresence/issues) to find something to work on!
