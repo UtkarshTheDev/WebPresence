@@ -44,18 +44,6 @@ const defaultConfig = {
         iconKey: "firefox",
         text: "Mozilla Firefox",
       },
-      edge: {
-        iconKey: "edge",
-        text: "Microsoft Edge",
-      },
-      safari: {
-        iconKey: "safari",
-        text: "Safari",
-      },
-      opera: {
-        iconKey: "opera",
-        text: "Opera",
-      },
       default: {
         iconKey: "me",
         text: "Utkarsh Tiwari",
