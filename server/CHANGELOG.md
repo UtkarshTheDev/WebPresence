@@ -2,7 +2,31 @@
 
 All notable changes to the WebPresence package will be documented in this file.
 
-## [3.1.0] - 2023-07-15
+## [3.2.0] - 2025-06-14
+
+### Added
+
+- **Browser-specific icons in Discord presence**: Small image now shows the browser icon based on which browser extension is being used
+- Browser detection system that automatically identifies Chrome and Firefox extensions
+- Dynamic browser icon configuration with support for Chrome and Firefox browsers
+- Enhanced Discord Rich Presence with browser-specific small image and text display
+
+### Changed
+
+- Modified browser extensions to send browser identification information with presence updates
+- Updated Discord service to dynamically select browser icons based on extension source
+- Enhanced WebSocket communication protocol to include browser information
+- Improved presence display to show both website-specific large icons and browser-specific small icons
+
+### Technical Details
+
+- Added `browserIcons` configuration in server config with Chrome and Firefox icon mappings
+- Updated Chrome extension to send `browser: "chrome"` with presence data
+- Updated Firefox extension to send `browser: "firefox"` with presence data
+- Modified Discord `setActivity()` function to accept and process browser parameter
+- Enhanced WebSocket message handling to extract and forward browser information
+
+## [3.1.0] - 2025-05-15
 
 ### Fixed
 
@@ -12,7 +36,7 @@ All notable changes to the WebPresence package will be documented in this file.
 - Added timeout handling for update checks to prevent CLI commands from hanging
 - Improved error handling and logging during the update process
 
-## [3.0.0] - 2023-05-15
+## [3.0.0] - 2025-05-15
 
 ### Added
 
@@ -37,7 +61,7 @@ All notable changes to the WebPresence package will be documented in this file.
 - Improved Discord detection and startup timing on Linux
 - Enhanced compatibility with various Linux desktop environments
 
-## [2.1.0] - 2023-04-14
+## [2.1.0] - 2025-04-14
 
 ### Added
 
@@ -50,7 +74,7 @@ All notable changes to the WebPresence package will be documented in this file.
 - Improved package management with automatic update checks
 - Enhanced user experience with update notifications
 
-## [2.0.0] - 2023-04-13
+## [2.0.0] - 2025-04-13
 
 ### Added
 
@@ -68,7 +92,7 @@ All notable changes to the WebPresence package will be documented in this file.
 - Improved error handling and status detection
 - Enhanced cross-platform compatibility
 
-## [1.1.0] - 2023-04-12
+## [1.1.0] - 2025-04-12
 
 ### Added
 
@@ -81,7 +105,7 @@ All notable changes to the WebPresence package will be documented in this file.
 - Improved logging system with different verbosity levels
 - Reduced unnecessary log output for cleaner CLI experience
 
-## [1.0.0] - 2023-04-10
+## [1.0.0] - 2025-04-10
 
 ### Added
 
